@@ -1,6 +1,10 @@
-## binder plugin
+## binder
 
 Parameter Binding Verification Plugin for Struct Handler.
+
+- Usage
+
+`import binder "github.com/henrylee2cn/tp-ext/plugin-binder"`
 
 - Param-Tags
 
