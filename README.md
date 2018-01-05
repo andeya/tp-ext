@@ -2,10 +2,8 @@
 
 [Teleport Framework](https://github.com/henrylee2cn/teleport) custom extensions collection.
 
-[简体中文](https://github.com/henrylee2cn/tp-ext/blob/master/README_ZH.md)
 
 ## Install
-
 
 ```sh
 go get -u github.com/henrylee2cn/tp-ext/...
