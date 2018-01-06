@@ -2,6 +2,10 @@
 
 A generic timing heartbeat package.
 
+- Usage
+
+`import heartbeat "github.com/henrylee2cn/tp-ext/sundry-heartbeat"`
+
 - Demo
 
 ```go
