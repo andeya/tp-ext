@@ -2,6 +2,9 @@
 
 A generic timing heartbeat plugin.
 
+During a heartbeat, if there is no communication, send a heartbeat packet;
+When the connection is idle more than 3 times the heartbeat time, take the initiative to disconnect.
+
 ### Usage
 
 `import heartbeat "github.com/henrylee2cn/tp-ext/plugin-heartbeat"`
