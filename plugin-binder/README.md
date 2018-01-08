@@ -18,7 +18,7 @@ param |  nonzero |      no      |    -    | Not allowed to zero
 param |  regexp  |      no      |   (e.g.`^\w+$`)  | Regular expression validation
 param |   err    |      no      |(e.g.`wrong password format`)| Custom error message
 
-**NOTES**:
+NOTES:
 * `param:"-"` means ignore
 * Encountered untagged exportable anonymous structure field, automatic recursive resolution
 
@@ -97,4 +97,8 @@ func TestBinder(t *testing.T) {
 	}
 	t.Logf("10/0 error:%v", rerr)
 }
+```
+
+```sh
+go test -v -run=TestBinder
 ```

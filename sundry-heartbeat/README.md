@@ -6,15 +6,32 @@ A generic timing heartbeat package.
 
 `import heartbeat "github.com/henrylee2cn/tp-ext/sundry-heartbeat"`
 
-#### Demo
+#### Test
 
 ```go
-srv := tp.NewPeer(tp.PeerConfig{ListenAddress: ":9090"})
-heartbeat.WithPong(srv)
-go srv.Listen()
+package heartbeat_test
 
-cli := tp.NewPeer(tp.PeerConfig{})
-heartbeat.WithPing(cli, time.Second)
-cli.Dial(":9090")
-time.Sleep(time.Second * 10)
+import (
+	"testing"
+	"time"
+
+	tp "github.com/henrylee2cn/teleport"
+	heartbeat "github.com/henrylee2cn/tp-ext/sundry-heartbeat"
+)
+
+func TestHeartbeat(t *testing.T) {
+	srv := tp.NewPeer(tp.PeerConfig{ListenAddress: ":9090"})
+	heartbeat.WithPong(srv)
+	go srv.Listen()
+	time.Sleep(time.Second)
+
+	cli := tp.NewPeer(tp.PeerConfig{})
+	heartbeat.WithPing(cli, time.Second)
+	cli.Dial(":9090")
+	time.Sleep(time.Second * 10)
+}
+```
+
+```sh
+go test -v -run=TestHeartbeat
 ```
