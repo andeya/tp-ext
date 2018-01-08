@@ -2,11 +2,11 @@
 
 A generic timing heartbeat package.
 
-- Usage
+### Usage
 
 `import heartbeat "github.com/henrylee2cn/tp-ext/sundry-heartbeat"`
 
-- Demo
+#### Demo
 
 ```go
 srv := tp.NewPeer(tp.PeerConfig{ListenAddress: ":9090"})

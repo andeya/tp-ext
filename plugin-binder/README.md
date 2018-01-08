@@ -2,11 +2,11 @@
 
 Parameter Binding Verification Plugin for Struct Handler.
 
-- Usage
+### Usage
 
 `import binder "github.com/henrylee2cn/tp-ext/plugin-binder"`
 
-- Param-Tags
+#### Param-Tags
 
 tag   |   key    | required |     value     |   desc
 ------|----------|----------|---------------|----------------------------------
@@ -43,7 +43,7 @@ float32 |  []float32 |
 float64 |  []float64 |
 
 
-- Test
+#### Test
 
 ```go
 package binder_test
