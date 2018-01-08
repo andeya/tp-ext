@@ -101,7 +101,7 @@ func (s *StructArgsBinder) PostReg(h *tp.Handler) *tp.Rerror {
 		return nil
 	}
 	params := newParams(h.Name())
-	err := params.addFields([]int{}, h.ArgElemType(), h.NewArgValue())
+	err := params.addFields([]int{}, h.ArgElemType(), h.NewArgValue().Elem())
 	if err != nil {
 		tp.Fatalf("%v", err)
 	}
