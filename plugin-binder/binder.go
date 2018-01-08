@@ -96,7 +96,7 @@ func (*StructArgsBinder) Name() string {
 }
 
 // PostReg preprocessing struct handler.
-func (s *StructArgsBinder) PostReg(h *tp.Handler) *tp.Rerror {
+func (s *StructArgsBinder) PostReg(h *tp.Handler) error {
 	if h.ArgElemType().Kind() != reflect.Struct {
 		return nil
 	}
