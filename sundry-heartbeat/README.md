@@ -32,6 +32,8 @@ func TestHeartbeat(t *testing.T) {
 }
 ```
 
+test command:
+
 ```sh
 go test -v -run=TestHeartbeat
 ```

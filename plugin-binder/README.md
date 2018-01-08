@@ -99,6 +99,8 @@ func TestBinder(t *testing.T) {
 }
 ```
 
+test command:
+
 ```sh
 go test -v -run=TestBinder
 ```
