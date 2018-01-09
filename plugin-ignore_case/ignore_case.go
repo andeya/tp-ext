@@ -1,5 +1,4 @@
 // Dynamically ignoring the case of path
-//
 package ignore_case
 
 import (
