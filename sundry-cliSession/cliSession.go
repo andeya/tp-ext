@@ -1,4 +1,4 @@
-// CliSession client session which is has connection pool.
+// CliSession client session which has connection pool.
 //
 // Copyright 2018 HenryLee. All Rights Reserved.
 //

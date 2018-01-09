@@ -1,6 +1,6 @@
 ## cliSession
 
-CliSession client session which is has connection pool.
+Client session which has connection pool.
 
 ### Usage
 
