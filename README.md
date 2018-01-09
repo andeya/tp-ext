@@ -36,3 +36,4 @@ package|import|description
 
 package|import|description
 ----|------|-----------
+[cliSession](https://github.com/henrylee2cn/tp-ext/blob/master/sundry-cliSession)|`import cliSession "github.com/henrylee2cn/tp-ext/sundry-cliSession"`|CliSession client session which is has connection pool
