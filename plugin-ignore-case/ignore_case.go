@@ -20,12 +20,12 @@ func (i *ignoreCase) Name() string {
 
 func (i *ignoreCase) PostReadPullHeader(ctx tp.ReadCtx) *tp.Rerror {
 	// Dynamic transformation path is lowercase
-	ctx.Input().SetUri(strings.ToLower(ctx.Path()))
+	ctx.Url().Path = strings.ToLower(ctx.Url().Path)
 	return nil
 }
 
 func (i *ignoreCase) PostReadPushHeader(ctx tp.ReadCtx) *tp.Rerror {
 	// Dynamic transformation path is lowercase
-	ctx.Input().SetUri(strings.ToLower(ctx.Path()))
+	ctx.Url().Path = strings.ToLower(ctx.Url().Path)
 	return nil
 }
