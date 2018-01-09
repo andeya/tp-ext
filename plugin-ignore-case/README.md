@@ -76,3 +76,9 @@ func (p *Push) Test(args *map[string]interface{}) *tp.Rerror {
 	return nil
 }
 ```
+
+test command:
+
+```sh
+go test -v -run=TestIngoreCase
+```
