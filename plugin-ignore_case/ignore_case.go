@@ -1,6 +1,5 @@
 // Dynamically ignoring the case of path
 //
-// Copyright 2018 mougeCM. All Rights Reserved.
 package ignore_case
 
 import (
