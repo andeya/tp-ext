@@ -20,7 +20,7 @@ package|import|description
 ----|------|-----------
 [binder](https://github.com/henrylee2cn/tp-ext/blob/master/plugin-binder)|`import binder "github.com/henrylee2cn/tp-ext/plugin-binder"`|Parameter Binding Verification for Struct Handler
 [heartbeat](https://github.com/henrylee2cn/tp-ext/blob/master/plugin-heartbeat)|`import heartbeat "github.com/henrylee2cn/tp-ext/plugin-heartbeat"`|A generic timing heartbeat plugin
-[ignore-case](https://github.com/henrylee2cn/tp-ext/blob/master/plugin-ignore-case)|`import ignoreCase "github.com/henrylee2cn/tp-ext/plugin-ignore-case"`|Dynamically ignoring the case of path
+[ignore_case](https://github.com/henrylee2cn/tp-ext/blob/master/plugin-ignore_case)|`import ignore_case "github.com/henrylee2cn/tp-ext/plugin-ignore_case"`|Dynamically ignoring the case of path
 
 ## Protocol
 
