@@ -1,7 +1,6 @@
 package ignore_case
 
 import (
-	"fmt"
 	"strings"
 
 	tp "github.com/henrylee2cn/teleport"
@@ -20,7 +19,12 @@ func (i *ignoreCase) Name() string {
 }
 
 func (i *ignoreCase) PostReadPullHeader(ctx tp.ReadCtx) *tp.Rerror {
-	fmt.Println("papapapappapa", ctx.Path())
+	// Dynamic transformation path is lowercase
+	ctx.Input().SetUri(strings.ToLower(ctx.Path()))
+	return nil
+}
+
+func (i *ignoreCase) PostReadPushHeader(ctx tp.ReadCtx) *tp.Rerror {
 	// Dynamic transformation path is lowercase
 	ctx.Input().SetUri(strings.ToLower(ctx.Path()))
 	return nil

@@ -1,3 +1,14 @@
+## ignore-case
+
+Dynamically ignoring the case of path
+
+### Usage
+
+`import ignoreCase "github.com/henrylee2cn/tp-ext/plugin-ignore-case"`
+
+#### Test
+
+```go
 package ignore_case_test
 
 import (
@@ -64,3 +75,4 @@ func (p *Push) Test(args *map[string]interface{}) *tp.Rerror {
 	tp.Infof("receive push(%s):\nargs: %#v\n", p.Ip(), args)
 	return nil
 }
+```
