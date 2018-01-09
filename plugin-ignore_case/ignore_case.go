@@ -12,8 +12,7 @@ func NewIgnoreCase() *ignoreCase {
 	return &ignoreCase{}
 }
 
-type ignoreCase struct {
-}
+type ignoreCase struct{}
 
 func (i *ignoreCase) Name() string {
 	return "ignore_case"

@@ -9,7 +9,9 @@ import (
 	ignore_case "github.com/henrylee2cn/tp-ext/plugin-ignore_case"
 )
 
-type Home struct{ tp.PullCtx }
+type Home struct {
+	tp.PullCtx
+}
 
 func (h *Home) Test(args *map[string]interface{}) (map[string]interface{}, *tp.Rerror) {
 	h.Session().Push("/push/tesT", map[string]interface{}{
