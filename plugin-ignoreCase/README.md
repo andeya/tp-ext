@@ -1,4 +1,15 @@
-package ignore_case_test
+## ignoreCase
+
+Dynamically ignoring the case of path
+
+### Usage
+
+`import ignoreCase "github.com/henrylee2cn/tp-ext/plugin-ignoreCase"`
+
+#### Test
+
+```go
+package ignoreCase_test
 
 import (
 	"testing"
@@ -6,7 +17,7 @@ import (
 
 	tp "github.com/henrylee2cn/teleport"
 	"github.com/henrylee2cn/teleport/socket"
-	ignore_case "github.com/henrylee2cn/tp-ext/plugin-ignore_case"
+	ignoreCase "github.com/henrylee2cn/tp-ext/plugin-ignoreCase"
 )
 
 type Home struct {
@@ -28,13 +39,13 @@ func (h *Home) Test(args *map[string]interface{}) (map[string]interface{}, *tp.R
 
 func TestIngoreCase(t *testing.T) {
 	// Server
-	svr := tp.NewPeer(tp.PeerConfig{ListenAddress: ":9090"}, ignore_case.NewIgnoreCase())
+	svr := tp.NewPeer(tp.PeerConfig{ListenAddress: ":9090"}, ignoreCase.NewIgnoreCase())
 	svr.PullRouter.Reg(new(Home))
 	go svr.Listen()
 	time.Sleep(1e9)
 
 	// Client
-	cli := tp.NewPeer(tp.PeerConfig{}, ignore_case.NewIgnoreCase())
+	cli := tp.NewPeer(tp.PeerConfig{}, ignoreCase.NewIgnoreCase())
 	cli.PushRouter.Reg(new(Push))
 	sess, err := cli.Dial(":9090")
 	if err != nil {
@@ -64,3 +75,10 @@ func (p *Push) Test(args *map[string]interface{}) *tp.Rerror {
 	tp.Infof("receive push(%s):\nargs: %#v\n", p.Ip(), args)
 	return nil
 }
+```
+
+test command:
+
+```sh
+go test -v -run=TestIngoreCase
+```

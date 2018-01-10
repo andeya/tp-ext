@@ -1,5 +1,5 @@
 // Dynamically ignoring the case of path
-package ignore_case
+package ignoreCase
 
 import (
 	"strings"
@@ -7,7 +7,7 @@ import (
 	tp "github.com/henrylee2cn/teleport"
 )
 
-// NewIgnoreCase Returns a ignore_case plugin.
+// NewIgnoreCase Returns a ignoreCase plugin.
 func NewIgnoreCase() *ignoreCase {
 	return &ignoreCase{}
 }
@@ -15,7 +15,7 @@ func NewIgnoreCase() *ignoreCase {
 type ignoreCase struct{}
 
 func (i *ignoreCase) Name() string {
-	return "ignore_case"
+	return "ignoreCase"
 }
 
 func (i *ignoreCase) PostReadPullHeader(ctx tp.ReadCtx) *tp.Rerror {
