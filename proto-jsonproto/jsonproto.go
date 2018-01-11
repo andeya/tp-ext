@@ -1,5 +1,5 @@
 // Package jsonproto is implemented JSON protocol.
-//  Packet data demo: `81{"seq":%d,"ptype":%d,"uri":%q,"meta":%q,"body_codec":%d,"body":%q,"xfer_pipe":%s}`
+//  Packet data demo: `83{"seq":%d,"ptype":%d,"uri":%q,"meta":%q,"body_codec":%d,"body":"%s","xfer_pipe":%s}`
 //
 // Copyright 2018 HenryLee. All Rights Reserved.
 //
@@ -33,7 +33,7 @@ import (
 )
 
 // NewJsonproto creates a new socket.Proto.
-//  Packet data demo: `81{"seq":%d,"ptype":%d,"uri":%q,"meta":%q,"body_codec":%d,"body":%q,"xfer_pipe":%s}`
+//  Packet data demo: `83{"seq":%d,"ptype":%d,"uri":%q,"meta":%q,"body_codec":%d,"body":"%s","xfer_pipe":%s}`
 func NewJsonproto(rw io.ReadWriter) socket.Proto {
 	var (
 		readBufioSize             int
