@@ -1,4 +1,4 @@
-// Teleport Framework custom extensions collection.
+// Package tpext is Teleport Framework custom extensions collection.
 //
 // Copyright 2015-2017 HenryLee. All Rights Reserved.
 //
