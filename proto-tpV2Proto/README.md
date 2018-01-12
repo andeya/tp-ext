@@ -9,7 +9,7 @@ HeaderLength | HeaderCodecId | Header | BodyLength | BodyCodecId | Body
 
 **Notes:**
 - `HeaderLength`: uint32, 4 bytes, big endian
-- `HeaderCodecId`: uint8, 1 byte, header use protobuf(constant: 'p')
+- `HeaderCodecId`: uint8, 1 byte, header use protobuf(constant: `p`)
 - `Header`: header bytes
 - `BodyLength`: uint32, 4 bytes, big endian
 	* may be 0, meaning that the `Body` is empty and does not indicate the `BodyCodecId`
