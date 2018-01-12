@@ -1,6 +1,6 @@
 ## jsonproto
 
-jsonproto is implemented JSON protocol.
+jsonproto is implemented JSON socket communication protocol.
 
 
 ### Data Packet 
@@ -49,17 +49,17 @@ func (h *Home) Test(args *map[string]interface{}) (map[string]interface{}, *tp.R
 	}, nil
 }
 
-func TestJsonproto(t *testing.T) {
+func TestJsonProto(t *testing.T) {
 	// Server
 	svr := tp.NewPeer(tp.PeerConfig{ListenAddress: ":9090"})
 	svr.PullRouter.Reg(new(Home))
-	go svr.Listen(jsonproto.NewJsonproto)
+	go svr.Listen(jsonproto.NewProtoFunc)
 	time.Sleep(1e9)
 
 	// Client
 	cli := tp.NewPeer(tp.PeerConfig{})
 	cli.PushRouter.Reg(new(Push))
-	sess, err := cli.Dial(":9090", jsonproto.NewJsonproto)
+	sess, err := cli.Dial(":9090", jsonproto.NewProtoFunc)
 	if err != nil {
 		if err != nil {
 			t.Error(err)
@@ -94,5 +94,5 @@ func (p *Push) Test(args *map[string]interface{}) *tp.Rerror {
 test command:
 
 ```sh
-go test -v -run=TestJsonproto
+go test -v -run=TestJsonProto
 ```

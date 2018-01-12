@@ -23,13 +23,13 @@ func (p *P) Divide(args *Args) (int, *tp.Rerror) {
 
 func TestWebsocket(t *testing.T) {
 	srv := tp.NewPeer(tp.PeerConfig{})
-	http.Handle("/ws", websocket.NewServeHandler(srv, nil, jsonproto.NewJsonproto))
+	http.Handle("/ws", websocket.NewServeHandler(srv, nil, jsonproto.NewProtoFunc))
 	go http.ListenAndServe("0.0.0.0:9090", nil)
 	srv.PullRouter.Reg(new(P))
 	time.Sleep(time.Second * 1)
 
 	cli := tp.NewPeer(tp.PeerConfig{}, websocket.NewDialPlugin("/ws"))
-	sess, err := cli.Dial("127.0.0.1:9090", jsonproto.NewJsonproto)
+	sess, err := cli.Dial("127.0.0.1:9090", jsonproto.NewProtoFunc)
 	if err != nil {
 		t.Fatal(err)
 	}

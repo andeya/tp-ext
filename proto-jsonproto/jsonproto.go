@@ -1,4 +1,4 @@
-// Package jsonproto is implemented JSON protocol.
+// Package jsonproto is implemented JSON socket communication protocol.
 //  Packet data demo: `83{"seq":%d,"ptype":%d,"uri":%q,"meta":%q,"body_codec":%d,"body":"%s","xfer_pipe":%s}`
 //
 // Copyright 2018 HenryLee. All Rights Reserved.
@@ -32,9 +32,9 @@ import (
 	"github.com/henrylee2cn/teleport/utils"
 )
 
-// NewJsonproto creates a new socket.Proto.
+// NewProtoFunc is creation function of JSON socket protocol.
 //  Packet data demo: `83{"seq":%d,"ptype":%d,"uri":%q,"meta":%q,"body_codec":%d,"body":"%s","xfer_pipe":%s}`
-func NewJsonproto(rw io.ReadWriter) socket.Proto {
+var NewProtoFunc = func(rw io.ReadWriter) socket.Proto {
 	var (
 		readBufioSize             int
 		readBufferSize, isDefault = socket.ReadBuffer()
