@@ -8,6 +8,6 @@ message header {
 	int32	type 		= 2;
 	string	uri 		= 3;
 	int32	gzip		= 4;
-	int32	status_code   = 5;
+	int32	status_code  		= 5;
 	string	status		= 6;
 }
