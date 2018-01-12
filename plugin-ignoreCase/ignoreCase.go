@@ -1,4 +1,4 @@
-// Dynamically ignoring the case of path
+// Package ignoreCase dynamically ignoring the case of path
 package ignoreCase
 
 import (

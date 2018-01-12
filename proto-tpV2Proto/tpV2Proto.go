@@ -1,4 +1,4 @@
-// Compatible teleport v2 protocol
+// Package tpV2Proto compatible teleport v2 protocol
 package tpV2Proto
 
 import (
@@ -15,21 +15,8 @@ import (
 	"github.com/henrylee2cn/tp-ext/proto-tpV2Proto/pb"
 )
 
-// teleport v2 default builder of socket communication protocol.
-var defaultProtoFunc = newV2Proto
-
-// DefaultProtoFunc gets the default builder of socket communication protocol
-func DefaultProtoFunc() socket.ProtoFunc {
-	return defaultProtoFunc
-}
-
-// SetDefaultProtoFunc sets the default builder of socket communication protocol
-func SetDefaultProtoFunc(protoFunc socket.ProtoFunc) {
-	defaultProtoFunc = protoFunc
-}
-
-// Returns teleport v2 protocol
-func newV2Proto(rw io.ReadWriter) socket.Proto {
+// NewProtoFunc Returns teleport v2 protocol
+var NewProtoFunc = func(rw io.ReadWriter) socket.Proto {
 	var (
 		v2ProtoReadBufioSize      int
 		readBufferSize, isDefault = socket.ReadBuffer()
