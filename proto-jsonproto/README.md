@@ -2,7 +2,15 @@
 
 jsonproto is implemented JSON protocol.
 
-- Packet data demo:
+
+### Data Packet 
+
+`Length``JSON`
+
+- `Length`: uint32, 4 bytes, big endian
+- `JSON`: {"seq":%d,"ptype":%d,"uri":%q,"meta":%q,"body_codec":%d,"body":"%s","xfer_pipe":%s}
+
+Demo:
 
 ```
 83{"seq":%d,"ptype":%d,"uri":%q,"meta":%q,"body_codec":%d,"body":"%s","xfer_pipe":%s}

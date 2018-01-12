@@ -6,6 +6,7 @@ import (
 	"time"
 
 	tp "github.com/henrylee2cn/teleport"
+	jsonproto "github.com/henrylee2cn/tp-ext/proto-jsonproto"
 	websocket "github.com/henrylee2cn/tp-ext/sundry-websocket"
 )
 
@@ -22,13 +23,13 @@ func (p *P) Divide(args *Args) (int, *tp.Rerror) {
 
 func TestWebsocket(t *testing.T) {
 	srv := tp.NewPeer(tp.PeerConfig{})
-	http.Handle("/ws", websocket.NewServeHandler(srv, nil))
+	http.Handle("/ws", websocket.NewServeHandler(srv, nil, jsonproto.NewJsonproto))
 	go http.ListenAndServe("0.0.0.0:9090", nil)
 	srv.PullRouter.Reg(new(P))
 	time.Sleep(time.Second * 1)
 
 	cli := tp.NewPeer(tp.PeerConfig{}, websocket.NewDialPlugin("/ws"))
-	sess, err := cli.Dial("127.0.0.1:9090")
+	sess, err := cli.Dial("127.0.0.1:9090", jsonproto.NewJsonproto)
 	if err != nil {
 		t.Fatal(err)
 	}
