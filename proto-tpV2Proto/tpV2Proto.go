@@ -1,4 +1,4 @@
-// Compatible teleport v2 protocol
+// Package tpV2Proto Compatible teleport v2 protocol
 package tpV2Proto
 
 import (
