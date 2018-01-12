@@ -18,7 +18,6 @@ package cliSession
 import (
 	"time"
 
-	"github.com/henrylee2cn/goutil"
 	"github.com/henrylee2cn/goutil/pool"
 	tp "github.com/henrylee2cn/teleport"
 	"github.com/henrylee2cn/teleport/socket"
@@ -47,7 +46,7 @@ func New(peer *tp.Peer, addr string, sessMaxQuota int, sessMaxIdleDuration time.
 func (c *CliSession) AsyncPull(uri string, args interface{}, reply interface{}, done chan tp.PullCmd, setting ...socket.PacketSetting) {
 	_sess, err := c.pool.Hire()
 	if err != nil {
-		done <- c.fakePullCmd(uri, args, reply, tp.ToRerror(err), setting...)
+		done <- NewFakePullCmd(c.peer, uri, args, reply, tp.ToRerror(err), setting...)
 		return
 	}
 	sess := _sess.(tp.Session)
@@ -89,74 +88,4 @@ func (c *CliSession) Close() {
 // Stats returns the current session pool stats.
 func (c *CliSession) Stats() pool.WorkshopStats {
 	return c.pool.Stats()
-}
-
-func (c *CliSession) fakePullCmd(uri string, args, reply interface{}, rerr *tp.Rerror, setting ...socket.PacketSetting) tp.PullCmd {
-	output := socket.NewPacket(
-		socket.WithPtype(tp.TypePull),
-		socket.WithUri(uri),
-		socket.WithBody(args),
-	)
-	for _, fn := range setting {
-		fn(output)
-	}
-	return &fakePullCmd{
-		peer:   c.peer,
-		reply:  reply,
-		rerr:   rerr,
-		output: output,
-	}
-}
-
-type fakePullCmd struct {
-	peer   *tp.Peer
-	reply  interface{}
-	rerr   *tp.Rerror
-	output *socket.Packet
-}
-
-// Peer returns the peer.
-func (c *fakePullCmd) Peer() *tp.Peer {
-	return c.peer
-}
-
-// Session returns the session.
-func (c *fakePullCmd) Session() tp.Session {
-	return nil
-}
-
-// Ip returns the remote addr.
-func (c *fakePullCmd) Ip() string {
-	return ""
-}
-
-// Public returns temporary public data of context.
-func (c *fakePullCmd) Public() goutil.Map {
-	return nil
-}
-
-// PublicLen returns the length of public data of context.
-func (c *fakePullCmd) PublicLen() int {
-	return 0
-}
-
-// Output returns writed packet.
-func (c *fakePullCmd) Output() *socket.Packet {
-	return c.output
-}
-
-// Result returns the pull result.
-func (c *fakePullCmd) Result() (interface{}, *tp.Rerror) {
-	return c.reply, c.rerr
-}
-
-// *Rerror returns the pull error.
-func (c *fakePullCmd) Rerror() *tp.Rerror {
-	return c.rerr
-}
-
-// CostTime returns the pulled cost time.
-// If PeerConfig.CountTime=false, always returns 0.
-func (c *fakePullCmd) CostTime() time.Duration {
-	return 0
 }
