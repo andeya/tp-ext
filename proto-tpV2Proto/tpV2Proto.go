@@ -248,11 +248,14 @@ func (t *tpV2Proto) readBody(bb *utils.ByteBuffer, p *socket.Packet) error {
 
 	bbLen := len(bb.B)
 	// Array length judgment
+	if bbLen == 0 {
+		return nil
+	}
 	if bbLen > 0 {
 		p.SetBodyCodec(bb.B[0])
-	}
-	if bbLen > 1 {
-		err = p.UnmarshalNewBody(bb.B[1:])
+		if bbLen > 1 {
+			err = p.UnmarshalNewBody(bb.B[1:])
+		}
 	}
 	return err
 }
