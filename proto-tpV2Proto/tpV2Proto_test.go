@@ -23,12 +23,12 @@ func TestTpV2Proto(t *testing.T) {
 	// Server
 	svr := tp.NewPeer(tp.PeerConfig{ListenAddress: ":9090"})
 	svr.PullRouter.Reg(new(Home))
-	go svr.Listen(tpV2Proto.NewV2Proto)
+	go svr.Listen(tpV2Proto.NewProtoFunc)
 	time.Sleep(1e9)
 
 	// Client
 	cli := tp.NewPeer(tp.PeerConfig{})
-	sess, err := cli.Dial(":9090", tpV2Proto.NewV2Proto)
+	sess, err := cli.Dial(":9090", tpV2Proto.NewProtoFunc)
 	if err != nil {
 		if err != nil {
 			t.Error(err)

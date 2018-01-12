@@ -16,7 +16,7 @@ import (
 )
 
 // NewV2Proto Returns teleport v2 protocol
-func NewV2Proto(rw io.ReadWriter) socket.Proto {
+var NewProtoFunc = func(rw io.ReadWriter) socket.Proto {
 	var (
 		v2ProtoReadBufioSize      int
 		readBufferSize, isDefault = socket.ReadBuffer()
