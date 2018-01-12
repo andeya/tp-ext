@@ -15,7 +15,7 @@ import (
 	"github.com/henrylee2cn/tp-ext/proto-tpV2Proto/pb"
 )
 
-// NewV2Proto Returns teleport v2 protocol
+// NewProtoFunc Returns teleport v2 protocol
 var NewProtoFunc = func(rw io.ReadWriter) socket.Proto {
 	var (
 		v2ProtoReadBufioSize      int
