@@ -4,10 +4,10 @@ syntax = "proto3";
 package pb;
 
 message header {
-	uint64	seq			     = 1;
-	int32	  type         = 2;
-	string	uri 		     = 3;
-	int32	  gzip		     = 4;
-  int32	  status_code  = 5;
-  string	status		   = 6;
+	uint64	seq		= 1;
+	int32	type 		= 2;
+	string	uri 		= 3;
+	int32	gzip		= 4;
+	int32	status_code   = 5;
+	string	status		= 6;
 }

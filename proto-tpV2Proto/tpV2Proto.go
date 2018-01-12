@@ -5,7 +5,6 @@ import (
 	"bufio"
 	"encoding/binary"
 	"encoding/json"
-	"errors"
 	"io"
 	"sync"
 
@@ -58,10 +57,6 @@ type tpV2Proto struct {
 	w    io.Writer
 	rMu  sync.Mutex
 }
-
-var (
-	errProtoUnmatch = errors.New("Mismatched protocol")
-)
 
 // Version returns the protocol's id and name.
 func (t *tpV2Proto) Version() (byte, string) {
