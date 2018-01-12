@@ -9,7 +9,7 @@
 	It has these top-level messages:
 		Header
 */
-package tpV2
+package pb
 
 import proto "github.com/gogo/protobuf/proto"
 import fmt "fmt"

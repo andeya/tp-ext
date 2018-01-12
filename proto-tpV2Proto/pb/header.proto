@@ -1,7 +1,7 @@
 
 syntax = "proto3";
 
-package tpV2;
+package pb;
 
 message header {
 	uint64	seq			     = 1;
