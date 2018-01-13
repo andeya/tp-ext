@@ -25,12 +25,12 @@ import (
 
 // CliSession client session which is has connection pool
 type CliSession struct {
-	peer *tp.Peer
+	peer tp.Peer
 	pool *pool.Workshop
 }
 
 // New creates a client session which is has connection pool.
-func New(peer *tp.Peer, addr string, sessMaxQuota int, sessMaxIdleDuration time.Duration, protoFunc ...socket.ProtoFunc) *CliSession {
+func New(peer tp.Peer, addr string, sessMaxQuota int, sessMaxIdleDuration time.Duration, protoFunc ...socket.ProtoFunc) *CliSession {
 	newWorkerFunc := func() (pool.Worker, error) {
 		sess, rerr := peer.Dial(addr, protoFunc...)
 		return sess, rerr.ToError()
