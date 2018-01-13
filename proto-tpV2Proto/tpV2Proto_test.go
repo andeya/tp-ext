@@ -22,7 +22,7 @@ func (h *Home) Test(args *map[string]interface{}) (map[string]interface{}, *tp.R
 func TestTpV2Proto(t *testing.T) {
 	// Server
 	svr := tp.NewPeer(tp.PeerConfig{ListenAddress: ":9090"})
-	svr.PullRouter.Reg(new(Home))
+	svr.RegPull(new(Home))
 	go svr.Listen(tpV2Proto.NewProtoFunc)
 	time.Sleep(1e9)
 

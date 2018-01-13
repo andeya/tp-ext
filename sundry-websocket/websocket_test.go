@@ -25,7 +25,7 @@ func TestWebsocket(t *testing.T) {
 	srv := tp.NewPeer(tp.PeerConfig{})
 	http.Handle("/ws", websocket.NewServeHandler(srv, nil, jsonproto.NewProtoFunc))
 	go http.ListenAndServe("0.0.0.0:9090", nil)
-	srv.PullRouter.Reg(new(P))
+	srv.RegPull(new(P))
 	time.Sleep(time.Second * 1)
 
 	cli := tp.NewPeer(tp.PeerConfig{}, websocket.NewDialPlugin("/ws"))

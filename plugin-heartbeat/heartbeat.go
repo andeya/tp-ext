@@ -62,7 +62,7 @@ func (h *heartbeat) PostNewPeer(peer *tp.Peer) error {
 			}
 		}()
 	} else {
-		peer.PullRouter.Reg(new(heart))
+		peer.RegPull(new(heart))
 		rangeSession := peer.RangeSession
 		go func() {
 			for {
