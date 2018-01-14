@@ -30,6 +30,7 @@ import (
 	ws "github.com/henrylee2cn/tp-ext/sundry-websocket/websocket"
 )
 
+// NewDialPlugin creates a websocket plugin for client.
 func NewDialPlugin(pattern string) tp.PostDialPlugin {
 	pattern = path.Join("/", strings.TrimRight(pattern, "/"))
 	if pattern == "/" {
@@ -42,11 +43,15 @@ type clientPlugin struct {
 	pattern string
 }
 
+var (
+	_ tp.PostDialPlugin = new(clientPlugin)
+)
+
 func (*clientPlugin) Name() string {
 	return "websocket"
 }
 
-func (c *clientPlugin) PostDial(sess tp.PreSession) *tp.Rerror {
+func (c *clientPlugin) PostDial(sess tp.EarlySession) *tp.Rerror {
 	var location, origin string
 	if sess.Peer().TlsConfig() == nil {
 		location = "ws://" + sess.RemoteIp() + c.pattern
@@ -68,7 +73,7 @@ func (c *clientPlugin) PostDial(sess tp.PreSession) *tp.Rerror {
 }
 
 // NewServeHandler creates a websocket handler.
-func NewServeHandler(peer *tp.Peer, handshake func(*ws.Config, *http.Request) error, protoFunc ...socket.ProtoFunc) http.Handler {
+func NewServeHandler(peer tp.Peer, handshake func(*ws.Config, *http.Request) error, protoFunc ...socket.ProtoFunc) http.Handler {
 	w := &serverHandler{
 		peer:      peer,
 		Server:    new(ws.Server),
@@ -90,7 +95,6 @@ func NewServeHandler(peer *tp.Peer, handshake func(*ws.Config, *http.Request) er
 		}
 	} else {
 		w.Server.Handshake = func(cfg *ws.Config, r *http.Request) error {
-
 			cfg.Origin = &url.URL{
 				Host:   r.RemoteAddr,
 				Scheme: scheme,
@@ -106,7 +110,7 @@ func NewServeHandler(peer *tp.Peer, handshake func(*ws.Config, *http.Request) er
 }
 
 type serverHandler struct {
-	peer      *tp.Peer
+	peer      tp.Peer
 	protoFunc socket.ProtoFunc
 	*ws.Server
 }

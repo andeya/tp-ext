@@ -34,7 +34,7 @@ func TestCliSession(t *testing.T) {
 	srv := tp.NewPeer(tp.PeerConfig{
 		ListenAddress: ":9090",
 	})
-	srv.PullRouter.Reg(new(P))
+	srv.RoutePull(new(P))
 	go srv.Listen()
 	time.Sleep(time.Second)
 

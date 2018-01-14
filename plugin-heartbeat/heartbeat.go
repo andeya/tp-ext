@@ -43,11 +43,23 @@ type heartbeat struct {
 	rate   time.Duration
 }
 
+var (
+	_ tp.PostNewPeerPlugin         = new(heartbeat)
+	_ tp.PostDialPlugin            = new(heartbeat)
+	_ tp.PostAcceptPlugin          = new(heartbeat)
+	_ tp.PostReadPullHeaderPlugin  = new(heartbeat)
+	_ tp.PostReadReplyHeaderPlugin = new(heartbeat)
+	_ tp.PostReadPushHeaderPlugin  = new(heartbeat)
+	_ tp.PostWritePullPlugin       = new(heartbeat)
+	_ tp.PostWriteReplyPlugin      = new(heartbeat)
+	_ tp.PostWritePushPlugin       = new(heartbeat)
+)
+
 func (h *heartbeat) Name() string {
 	return "heartbeat"
 }
 
-func (h *heartbeat) PostNewPeer(peer *tp.Peer) error {
+func (h *heartbeat) PostNewPeer(peer tp.EarlyPeer) error {
 	if h.isPing {
 		rangeSession := peer.RangeSession
 		go func() {
@@ -62,7 +74,7 @@ func (h *heartbeat) PostNewPeer(peer *tp.Peer) error {
 			}
 		}()
 	} else {
-		peer.PullRouter.Reg(new(heart))
+		peer.RoutePull(new(heart))
 		rangeSession := peer.RangeSession
 		go func() {
 			for {
@@ -79,11 +91,11 @@ func (h *heartbeat) PostNewPeer(peer *tp.Peer) error {
 	return nil
 }
 
-func (h *heartbeat) PostDial(sess tp.PreSession) *tp.Rerror {
+func (h *heartbeat) PostDial(sess tp.EarlySession) *tp.Rerror {
 	return h.PostAccept(sess)
 }
 
-func (h *heartbeat) PostAccept(sess tp.PreSession) *tp.Rerror {
+func (h *heartbeat) PostAccept(sess tp.EarlySession) *tp.Rerror {
 	t := coarsetime.CeilingTimeNow()
 	sess.Public().Store(heartbeatKey, &t)
 	return nil
@@ -142,7 +154,7 @@ func (h *heartbeat) isExpired(sess tp.Session) bool {
 	return t.(*time.Time).Add(h.rate * 3).Before(coarsetime.CeilingTimeNow())
 }
 
-func (h *heartbeat) update(ctx tp.BaseCtx) {
+func (h *heartbeat) update(ctx tp.PreCtx) {
 	sess := ctx.Session()
 	if !sess.Health() {
 		return

@@ -23,7 +23,7 @@ import (
 )
 
 // NewFakePullCmd creates a fake tp.PullCmd
-func NewFakePullCmd(peer *tp.Peer, uri string, args, reply interface{}, rerr *tp.Rerror, setting ...socket.PacketSetting) tp.PullCmd {
+func NewFakePullCmd(peer tp.Peer, uri string, args, reply interface{}, rerr *tp.Rerror, setting ...socket.PacketSetting) tp.PullCmd {
 	output := socket.NewPacket(
 		socket.WithPtype(tp.TypePull),
 		socket.WithUri(uri),
@@ -41,14 +41,14 @@ func NewFakePullCmd(peer *tp.Peer, uri string, args, reply interface{}, rerr *tp
 }
 
 type fakePullCmd struct {
-	peer   *tp.Peer
+	peer   tp.Peer
 	reply  interface{}
 	rerr   *tp.Rerror
 	output *socket.Packet
 }
 
 // Peer returns the peer.
-func (c *fakePullCmd) Peer() *tp.Peer {
+func (c *fakePullCmd) Peer() tp.Peer {
 	return c.peer
 }
 

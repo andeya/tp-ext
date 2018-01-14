@@ -90,6 +90,11 @@ func NewStructArgsBinder(bindErrCode int32, bindErrMessage string) *StructArgsBi
 	}
 }
 
+var (
+	_ tp.PostRegPlugin          = new(StructArgsBinder)
+	_ tp.PostReadPullBodyPlugin = new(StructArgsBinder)
+)
+
 // Name returns the plugin name.
 func (*StructArgsBinder) Name() string {
 	return "StructArgsBinder"

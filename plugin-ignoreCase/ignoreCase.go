@@ -14,6 +14,11 @@ func NewIgnoreCase() *ignoreCase {
 
 type ignoreCase struct{}
 
+var (
+	_ tp.PostReadPullHeaderPlugin = new(ignoreCase)
+	_ tp.PostReadPushHeaderPlugin = new(ignoreCase)
+)
+
 func (i *ignoreCase) Name() string {
 	return "ignoreCase"
 }
