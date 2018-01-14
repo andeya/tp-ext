@@ -70,7 +70,7 @@ func (p *P) Divide(args *Args) (int, *tp.Rerror) {
 func TestBinder(t *testing.T) {
 	bplugin := binder.NewStructArgsBinder(10001, "error request parameter")
 	srv := tp.NewPeer(tp.PeerConfig{ListenAddress: ":9090"})
-	srv.RegPull(new(P), bplugin)
+	srv.RoutePull(new(P), bplugin)
 	go srv.Listen()
 	time.Sleep(time.Second)
 
