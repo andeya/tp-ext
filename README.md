@@ -27,12 +27,13 @@ package|import|description
 package|import|description
 ----|------|-----------
 [jsonproto](https://github.com/henrylee2cn/tp-ext/blob/master/proto-jsonproto)|`import jsonproto "github.com/henrylee2cn/tp-ext/proto-jsonproto"`|A JSON socket communication protocol
-[tpV2Proto](https://github.com/henrylee2cn/tp-ext/blob/master/proto-tpV2Proto)|`import tpV2Proto "github.com/henrylee2cn/tp-ext/proto-tpV2Proto""`|Compatible teleport v2 protocol
+[tpV2Proto](https://github.com/henrylee2cn/tp-ext/blob/master/proto-tpV2Proto)|`import tpV2Proto "github.com/henrylee2cn/tp-ext/proto-tpV2Proto`|Compatible teleport v2 protocol
 
 ## Transfer-Filter
 
 package|import|description
 ----|------|-----------
+[md5Hash](https://github.com/henrylee2cn/tp-ext/blob/master/xfer-md5Hash)|`import md5Hash "github.com/henrylee2cn/tp-ext/xfer-md5Hash"`|Provides a integrity check transfer filter
 
 ## Sundry
 
