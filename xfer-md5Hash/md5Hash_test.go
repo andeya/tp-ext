@@ -2,25 +2,75 @@ package md5Hash_test
 
 import (
 	"testing"
+	"time"
 
+	tp "github.com/henrylee2cn/teleport"
+	"github.com/henrylee2cn/teleport/socket"
+	"github.com/henrylee2cn/teleport/xfer"
 	md5Hash "github.com/henrylee2cn/tp-ext/xfer-md5Hash"
 )
 
-func TestMd5Hash(t *testing.T) {
-	md5Check := md5Hash.New()
+func TestSeparate(t *testing.T) {
+	// Register filter(custom)
+	md5Hash.Reg('m')
+	md5Check, _ := xfer.Get('m')
 	input := []byte("md5")
 	b, err := md5Check.OnPack(input)
 	if err != nil {
 		t.Fatalf("Onpack: %v", err)
 	}
 
-	// Tamper with data
-	// b = append(b, "viruses"...)
-
-	output, err := md5Check.OnUnpack(b)
+	_, err = md5Check.OnUnpack(b)
 	if err != nil {
 		t.Fatalf("Md5 check failed: %v", err)
 	}
 
-	t.Logf("Md5 check success: want \"%s\", have \"%s\"", string(input), string(output))
+	// Tamper with data
+	b = append(b, "viruses"...)
+	_, err = md5Check.OnUnpack(b)
+	if err == nil {
+		t.Fatal("Md5 check failed:")
+	}
+}
+
+func TestCombined(t *testing.T) {
+	// Register filter(custom)
+	md5Hash.Reg('m')
+	// Server
+	svr := tp.NewPeer(tp.PeerConfig{ListenAddress: ":9090"})
+	svr.RoutePull(new(Home))
+	go svr.Listen()
+	time.Sleep(1e9)
+
+	// Client
+	cli := tp.NewPeer(tp.PeerConfig{})
+	sess, err := cli.Dial(":9090")
+	if err != nil {
+		if err != nil {
+			t.Error(err)
+		}
+	}
+	var reply interface{}
+	rerr := sess.Pull("/home/test?peer_id=110",
+		map[string]interface{}{
+			"bytes": []byte("test bytes"),
+		},
+		&reply,
+		// Use custom filter
+		socket.WithXferPipe('m'),
+	).Rerror()
+	if rerr != nil {
+		t.Error(rerr)
+	}
+	t.Logf("=========reply:%v", reply)
+}
+
+type Home struct {
+	tp.PullCtx
+}
+
+func (h *Home) Test(args *map[string]interface{}) (map[string]interface{}, *tp.Rerror) {
+	return map[string]interface{}{
+		"your_id": h.Query().Get("peer_id"),
+	}, nil
 }
