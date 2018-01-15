@@ -12,7 +12,7 @@ type safetyCheck struct{}
 
 const md5Length = 16
 
-var errDataCheckFailed = errors.New("check failed")
+var errDataCheck = errors.New("check failed")
 
 // NewSafetyCheck returns a safetyCheck object
 func NewSafetyCheck() *safetyCheck {
@@ -37,7 +37,7 @@ func (s *safetyCheck) OnPack(src []byte) ([]byte, error) {
 func (s *safetyCheck) OnUnpack(src []byte) ([]byte, error) {
 	srcLength := len(src)
 	if srcLength < md5Length {
-		return nil, errDataCheckFailed
+		return nil, errDataCheck
 	}
 	srcData := src[:srcLength-md5Length]
 	content, err := getMd5(srcData)
@@ -46,7 +46,7 @@ func (s *safetyCheck) OnUnpack(src []byte) ([]byte, error) {
 	}
 	// Check
 	if !bytes.Equal(content, src[srcLength-md5Length:]) {
-		return nil, errDataCheckFailed
+		return nil, errDataCheck
 	}
 	return srcData, nil
 }

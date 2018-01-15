@@ -15,7 +15,7 @@ func TestSafetyCheck(t *testing.T) {
 	}
 
 	// Tamper with data
-	b = append(b, "viruses"...)
+	// b = append(b, "viruses"...)
 
 	output, err := safetyCheck.OnUnpack(b)
 	if err != nil {
