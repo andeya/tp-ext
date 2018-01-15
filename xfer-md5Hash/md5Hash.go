@@ -1,30 +1,32 @@
-// Package safetyCheck provides a integrity check transfer filter
-package safetyCheck
+// Package md5Hash provides a integrity check transfer filter
+package md5Hash
 
 import (
 	"bytes"
 	"crypto/md5"
 	"errors"
+
+	"github.com/henrylee2cn/teleport/xfer"
 )
 
-// safetyCheck compression filter
-type safetyCheck struct{}
+// md5Hash compression filter
+type md5Hash struct{}
 
 const md5Length = 16
 
 var errDataCheck = errors.New("check failed")
 
-// NewSafetyCheck returns a safetyCheck object
-func NewSafetyCheck() *safetyCheck {
-	return &safetyCheck{}
+// New returns a integrity check transfer filter
+func New() xfer.XferFilter {
+	return &md5Hash{}
 }
 
 // Id returns transfer filter id.
-func (s *safetyCheck) Id() byte {
+func (m *md5Hash) Id() byte {
 	return 0
 }
 
-func (s *safetyCheck) OnPack(src []byte) ([]byte, error) {
+func (m *md5Hash) OnPack(src []byte) ([]byte, error) {
 	content, err := getMd5(src)
 	if err != nil {
 		return nil, err
@@ -34,7 +36,7 @@ func (s *safetyCheck) OnPack(src []byte) ([]byte, error) {
 	return src, nil
 }
 
-func (s *safetyCheck) OnUnpack(src []byte) ([]byte, error) {
+func (m *md5Hash) OnUnpack(src []byte) ([]byte, error) {
 	srcLength := len(src)
 	if srcLength < md5Length {
 		return nil, errDataCheck
@@ -51,12 +53,13 @@ func (s *safetyCheck) OnUnpack(src []byte) ([]byte, error) {
 	return srcData, nil
 }
 
+// Get md5 data
 func getMd5(src []byte) ([]byte, error) {
-	md5Hash := md5.New()
-	_, err := md5Hash.Write(src)
+	newMd5 := md5.New()
+	_, err := newMd5.Write(src)
 	if err != nil {
 		return nil, err
 	}
 
-	return md5Hash.Sum(nil), nil
+	return newMd5.Sum(nil), nil
 }
