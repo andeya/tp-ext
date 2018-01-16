@@ -61,9 +61,7 @@ func TestJsonProto(t *testing.T) {
 	cli.RoutePush(new(Push))
 	sess, err := cli.Dial(":9090", jsonproto.NewProtoFunc)
 	if err != nil {
-		if err != nil {
-			t.Error(err)
-		}
+		t.Error(err)
 	}
 	var reply interface{}
 	rerr := sess.Pull("/home/test?peer_id=110",
