@@ -20,6 +20,7 @@ import (
 	"github.com/henrylee2cn/goutil"
 	tp "github.com/henrylee2cn/teleport"
 	"github.com/henrylee2cn/teleport/socket"
+	"github.com/henrylee2cn/teleport/utils"
 )
 
 // NewFakePullCmd creates a fake tp.PullCmd
@@ -33,18 +34,20 @@ func NewFakePullCmd(peer tp.Peer, uri string, args, reply interface{}, rerr *tp.
 		fn(output)
 	}
 	return &fakePullCmd{
-		peer:   peer,
-		reply:  reply,
-		rerr:   rerr,
-		output: output,
+		peer:      peer,
+		reply:     reply,
+		rerr:      rerr,
+		output:    output,
+		inputMeta: utils.AcquireArgs(),
 	}
 }
 
 type fakePullCmd struct {
-	peer   tp.Peer
-	reply  interface{}
-	rerr   *tp.Rerror
-	output *socket.Packet
+	peer      tp.Peer
+	reply     interface{}
+	rerr      *tp.Rerror
+	output    *socket.Packet
+	inputMeta *utils.Args
 }
 
 // Peer returns the peer.
@@ -57,8 +60,23 @@ func (c *fakePullCmd) Session() tp.Session {
 	return nil
 }
 
+// Id returns the session id.
+func (c *fakePullCmd) Id() string {
+	return ""
+}
+
+// RealId returns the current real remote id.
+func (c *fakePullCmd) RealId() string {
+	return ""
+}
+
 // Ip returns the remote addr.
 func (c *fakePullCmd) Ip() string {
+	return ""
+}
+
+// RealIp returns the the current real remote addr.
+func (c *fakePullCmd) RealIp() string {
 	return ""
 }
 
@@ -85,6 +103,11 @@ func (c *fakePullCmd) Result() (interface{}, *tp.Rerror) {
 // *Rerror returns the pull error.
 func (c *fakePullCmd) Rerror() *tp.Rerror {
 	return c.rerr
+}
+
+// InputMeta returns the header metadata of input packet.
+func (c *fakePullCmd) InputMeta() *utils.Args {
+	return c.inputMeta
 }
 
 // CostTime returns the pulled cost time.

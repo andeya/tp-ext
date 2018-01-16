@@ -39,6 +39,7 @@ func NewPong(rate time.Duration) *heartbeat {
 }
 
 type heartbeat struct {
+	peer   tp.Peer
 	isPing bool
 	rate   time.Duration
 }
@@ -60,8 +61,13 @@ func (h *heartbeat) Name() string {
 }
 
 func (h *heartbeat) PostNewPeer(peer tp.EarlyPeer) error {
+	h.peer = peer.(tp.Peer)
+	return nil
+}
+
+func (h *heartbeat) PostListen() error {
 	if h.isPing {
-		rangeSession := peer.RangeSession
+		rangeSession := h.peer.RangeSession
 		go func() {
 			for {
 				time.Sleep(h.rate)
@@ -74,8 +80,8 @@ func (h *heartbeat) PostNewPeer(peer tp.EarlyPeer) error {
 			}
 		}()
 	} else {
-		peer.RoutePull(new(heart))
-		rangeSession := peer.RangeSession
+		h.peer.RoutePull(new(heart))
+		rangeSession := h.peer.RangeSession
 		go func() {
 			for {
 				time.Sleep(h.rate)
