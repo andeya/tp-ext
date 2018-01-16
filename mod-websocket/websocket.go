@@ -27,7 +27,7 @@ import (
 	tp "github.com/henrylee2cn/teleport"
 	"github.com/henrylee2cn/teleport/socket"
 	"github.com/henrylee2cn/teleport/utils"
-	ws "github.com/henrylee2cn/tp-ext/sundry-websocket/websocket"
+	ws "github.com/henrylee2cn/tp-ext/mod-websocket/websocket"
 )
 
 // NewDialPlugin creates a websocket plugin for client.

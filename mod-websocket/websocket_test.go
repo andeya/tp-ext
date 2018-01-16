@@ -1,14 +1,3 @@
-## websocket
-
-Websocket is an extension package that makes the Teleport framework compatible with websocket protocol as specified in RFC 6455.
-
-### Usage
-
-`import websocket "github.com/henrylee2cn/tp-ext/sundry-websocket"`
-
-#### Test
-
-```go
 package websocket_test
 
 import (
@@ -17,8 +6,8 @@ import (
 	"time"
 
 	tp "github.com/henrylee2cn/teleport"
+	websocket "github.com/henrylee2cn/tp-ext/mod-websocket"
 	jsonproto "github.com/henrylee2cn/tp-ext/proto-jsonproto"
-	websocket "github.com/henrylee2cn/tp-ext/sundry-websocket"
 )
 
 type Args struct {
@@ -55,10 +44,3 @@ func TestWebsocket(t *testing.T) {
 	t.Logf("10/2=%d", reply)
 	time.Sleep(time.Second)
 }
-```
-
-test command:
-
-```sh
-go test -v -run=TestWebsocket
-```
