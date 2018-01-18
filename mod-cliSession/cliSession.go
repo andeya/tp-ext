@@ -68,7 +68,7 @@ func (c *CliSession) Stats() pool.WorkshopStats {
 func (c *CliSession) AsyncPull(uri string, args interface{}, reply interface{}, done chan tp.PullCmd, setting ...socket.PacketSetting) {
 	_sess, err := c.pool.Hire()
 	if err != nil {
-		done <- NewFakePullCmd(c.peer, uri, args, reply, tp.ToRerror(err), setting...)
+		done <- tp.NewFakePullCmd(c.peer, uri, args, reply, tp.ToRerror(err))
 		return
 	}
 	sess := _sess.(tp.Session)
