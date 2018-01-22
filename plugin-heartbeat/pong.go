@@ -16,7 +16,6 @@ package heartbeat
 
 import (
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/henrylee2cn/goutil/coarsetime"
@@ -33,21 +32,14 @@ type (
 	Pong interface {
 		Name() string
 		PostNewPeer(peer tp.EarlyPeer) error
-		PostDial(sess tp.EarlySession) *tp.Rerror
-		PostListen() error
 		PostReadPullHeader(ctx tp.ReadCtx) *tp.Rerror
 		PostReadPushHeader(ctx tp.ReadCtx) *tp.Rerror
 	}
-	heartPong struct {
-		peer tp.Peer
-		once sync.Once
-	}
+	heartPong struct{}
 )
 
 var (
 	_ tp.PostNewPeerPlugin        = Pong(nil)
-	_ tp.PostDialPlugin           = Pong(nil)
-	_ tp.PostListenPlugin         = Pong(nil)
 	_ tp.PostReadPullHeaderPlugin = Pong(nil)
 	_ tp.PostReadPushHeaderPlugin = Pong(nil)
 )
@@ -56,9 +48,9 @@ func (h *heartPong) Name() string {
 	return "heart-pong"
 }
 
-func (h *heartPong) start() {
-	h.peer.RoutePull(new(heart))
-	rangeSession := h.peer.RangeSession
+func (h *heartPong) PostNewPeer(peer tp.EarlyPeer) error {
+	peer.RoutePull(new(heart))
+	rangeSession := peer.RangeSession
 	interval := time.Second
 	go func() {
 		for {
@@ -79,20 +71,6 @@ func (h *heartPong) start() {
 			})
 		}
 	}()
-}
-
-func (h *heartPong) PostNewPeer(peer tp.EarlyPeer) error {
-	h.peer = peer.(tp.Peer)
-	return nil
-}
-
-func (h *heartPong) PostDial(sess tp.EarlySession) *tp.Rerror {
-	h.once.Do(h.start)
-	return nil
-}
-
-func (h *heartPong) PostListen() error {
-	h.once.Do(h.start)
 	return nil
 }
 

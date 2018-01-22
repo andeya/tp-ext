@@ -38,7 +38,6 @@ type (
 		Name() string
 		PostNewPeer(peer tp.EarlyPeer) error
 		PostDial(sess tp.EarlySession) *tp.Rerror
-		PostListen() error
 		PostAccept(sess tp.EarlySession) *tp.Rerror
 		PostWritePull(ctx tp.WriteCtx) *tp.Rerror
 		PostWritePush(ctx tp.WriteCtx) *tp.Rerror
@@ -57,7 +56,6 @@ type (
 var (
 	_ tp.PostNewPeerPlugin   = Ping(nil)
 	_ tp.PostDialPlugin      = Ping(nil)
-	_ tp.PostListenPlugin    = Pong(nil)
 	_ tp.PostAcceptPlugin    = Ping(nil)
 	_ tp.PostWritePullPlugin = Ping(nil)
 	_ tp.PostWritePushPlugin = Ping(nil)
@@ -87,8 +85,8 @@ func (h *heartPing) Name() string {
 	return "heart-ping"
 }
 
-func (h *heartPing) start() {
-	rangeSession := h.peer.RangeSession
+func (h *heartPing) PostNewPeer(peer tp.EarlyPeer) error {
+	rangeSession := peer.RangeSession
 	go func() {
 		for {
 			time.Sleep(h.getRate())
@@ -100,21 +98,11 @@ func (h *heartPing) start() {
 			})
 		}
 	}()
-}
-
-func (h *heartPing) PostNewPeer(peer tp.EarlyPeer) error {
-	h.peer = peer.(tp.Peer)
 	return nil
 }
 
 func (h *heartPing) PostDial(sess tp.EarlySession) *tp.Rerror {
 	initHeartbeatInfo(sess.Public(), h.getRate())
-	h.once.Do(h.start)
-	return nil
-}
-
-func (h *heartPing) PostListen() error {
-	h.once.Do(h.start)
 	return nil
 }
 
@@ -142,6 +130,8 @@ func (h *heartPing) tryPull(sess tp.Session) *tp.Rerror {
 	rerr := sess.Pull(h.getUri(), nil, nil).Rerror()
 	if rerr == nil {
 		tp.Tracef("%s heartbeat: ping", sess.Id())
+	} else {
+		tp.Errorf("%s heartbeat: ping fail: %s", sess.Id(), rerr.String())
 	}
 	return rerr
 }
