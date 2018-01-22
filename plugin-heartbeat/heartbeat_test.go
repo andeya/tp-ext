@@ -27,18 +27,15 @@ func TestHeartbeat1(t *testing.T) {
 func TestHeartbeat2(t *testing.T) {
 	srv := tp.NewPeer(
 		tp.PeerConfig{ListenAddress: ":9090"},
-		heartbeat.NewPong(),
+		heartbeat.NewPing(time.Second),
 	)
 	go srv.Listen()
 	time.Sleep(time.Second)
 
 	cli := tp.NewPeer(
 		tp.PeerConfig{},
-		heartbeat.NewPing(time.Second*3),
+		heartbeat.NewPong(),
 	)
-	sess, _ := cli.Dial(":9090")
-	for i := 0; i < 5; i++ {
-		time.Sleep(time.Second * 2)
-		sess.Pull("uri", nil, nil)
-	}
+	cli.Dial(":9090")
+	time.Sleep(time.Second * 10)
 }
