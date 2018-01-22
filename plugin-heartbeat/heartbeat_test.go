@@ -11,7 +11,7 @@ import (
 func TestHeartbeat1(t *testing.T) {
 	srv := tp.NewPeer(
 		tp.PeerConfig{ListenAddress: ":9090"},
-		heartbeat.NewPong(time.Second),
+		heartbeat.NewPong(),
 	)
 	go srv.Listen()
 	time.Sleep(time.Second)
@@ -27,7 +27,7 @@ func TestHeartbeat1(t *testing.T) {
 func TestHeartbeat2(t *testing.T) {
 	srv := tp.NewPeer(
 		tp.PeerConfig{ListenAddress: ":9090"},
-		heartbeat.NewPong(time.Second*3),
+		heartbeat.NewPong(),
 	)
 	go srv.Listen()
 	time.Sleep(time.Second)

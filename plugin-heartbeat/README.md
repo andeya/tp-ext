@@ -15,7 +15,7 @@ When the connection is idle more than 3 times the heartbeat time, take the initi
 func TestHeartbeat1(t *testing.T) {
 	srv := tp.NewPeer(
 		tp.PeerConfig{ListenAddress: ":9090"},
-		heartbeat.NewPong(time.Second),
+		heartbeat.NewPong(),
 	)
 	go srv.Listen()
 	time.Sleep(time.Second)
