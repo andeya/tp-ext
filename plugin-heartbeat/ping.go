@@ -26,9 +26,9 @@ import (
 )
 
 // NewPing returns a heartbeat sender plugin.
-func NewPing(rate time.Duration) Ping {
+func NewPing(rateSecond int) Ping {
 	p := new(heartPing)
-	p.SetRate(rate)
+	p.SetRate(rateSecond)
 	return p
 }
 
@@ -41,8 +41,10 @@ type (
 		PostAccept(sess tp.EarlySession) *tp.Rerror
 		PostWritePull(ctx tp.WriteCtx) *tp.Rerror
 		PostWritePush(ctx tp.WriteCtx) *tp.Rerror
+		PostReadPullHeader(ctx tp.ReadCtx) *tp.Rerror
+		PostReadPushHeader(ctx tp.ReadCtx) *tp.Rerror
 		// SetRate sets heartbeat rate.
-		SetRate(rate time.Duration)
+		SetRate(rateSecond int)
 	}
 	heartPing struct {
 		peer     tp.Peer
@@ -54,19 +56,25 @@ type (
 )
 
 var (
-	_ tp.PostNewPeerPlugin   = Ping(nil)
-	_ tp.PostDialPlugin      = Ping(nil)
-	_ tp.PostAcceptPlugin    = Ping(nil)
-	_ tp.PostWritePullPlugin = Ping(nil)
-	_ tp.PostWritePushPlugin = Ping(nil)
+	_ tp.PostNewPeerPlugin        = Ping(nil)
+	_ tp.PostDialPlugin           = Ping(nil)
+	_ tp.PostAcceptPlugin         = Ping(nil)
+	_ tp.PostWritePullPlugin      = Ping(nil)
+	_ tp.PostWritePushPlugin      = Ping(nil)
+	_ tp.PostReadPullHeaderPlugin = Ping(nil)
+	_ tp.PostReadPushHeaderPlugin = Ping(nil)
 )
 
 // SetRate sets heartbeat rate.
-func (h *heartPing) SetRate(rate time.Duration) {
+func (h *heartPing) SetRate(rateSecond int) {
+	if rateSecond < minRateSecond {
+		rateSecond = minRateSecond
+	}
 	h.mu.Lock()
-	h.pingRate = rate
-	h.uri = heartbeatUri + "?" + heartbeatQueryKey + "=" + strconv.FormatInt(int64(rate), 10)
+	h.pingRate = time.Second * time.Duration(rateSecond)
+	h.uri = heartbeatUri + "?" + heartbeatQueryKey + "=" + strconv.Itoa(rateSecond)
 	h.mu.Unlock()
+	tp.Infof("set heartbeat rate: %ds", rateSecond)
 }
 
 func (h *heartPing) getRate() time.Duration {
@@ -102,18 +110,17 @@ func (h *heartPing) PostNewPeer(peer tp.EarlyPeer) error {
 }
 
 func (h *heartPing) PostDial(sess tp.EarlySession) *tp.Rerror {
-	initHeartbeatInfo(sess.Public(), h.getRate())
-	return nil
+	return h.PostAccept(sess)
 }
 
 func (h *heartPing) PostAccept(sess tp.EarlySession) *tp.Rerror {
-	initHeartbeatInfo(sess.Public(), h.getRate())
+	rate := h.getRate()
+	initHeartbeatInfo(sess.Public(), rate)
 	return nil
 }
 
 func (h *heartPing) PostWritePull(ctx tp.WriteCtx) *tp.Rerror {
-	h.update(ctx)
-	return nil
+	return h.PostWritePush(ctx)
 }
 
 func (h *heartPing) PostWritePush(ctx tp.WriteCtx) *tp.Rerror {
@@ -121,17 +128,26 @@ func (h *heartPing) PostWritePush(ctx tp.WriteCtx) *tp.Rerror {
 	return nil
 }
 
+func (h *heartPing) PostReadPullHeader(ctx tp.ReadCtx) *tp.Rerror {
+	return h.PostReadPushHeader(ctx)
+}
+
+func (h *heartPing) PostReadPushHeader(ctx tp.ReadCtx) *tp.Rerror {
+	h.update(ctx)
+	return nil
+}
+
 func (h *heartPing) tryPull(sess tp.Session) *tp.Rerror {
-	info, ok := getHeartbeatInfo(sess)
+	info, ok := getHeartbeatInfo(sess.Public())
 	cp := info.elemCopy()
 	if !ok || cp.last.Add(cp.rate).After(coarsetime.CeilingTimeNow()) {
 		return nil
 	}
 	rerr := sess.Pull(h.getUri(), nil, nil).Rerror()
 	if rerr == nil {
-		tp.Tracef("%s heartbeat: ping", sess.Id())
+		tp.Tracef("heart-ping: %s", sess.RemoteIp())
 	} else {
-		tp.Errorf("%s heartbeat: ping fail: %s", sess.Id(), rerr.String())
+		tp.Errorf("heart-ping: %s, error: %s", sess.RemoteIp(), rerr.String())
 	}
 	return rerr
 }
@@ -141,5 +157,5 @@ func (h *heartPing) update(ctx tp.PreCtx) {
 	if !sess.Health() {
 		return
 	}
-	updateHeartbeatInfo(sess, h.getRate())
+	updateHeartbeatInfo(sess.Public(), h.getRate())
 }

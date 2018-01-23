@@ -22,7 +22,7 @@ func TestHeartbeat1(t *testing.T) {
 
 	cli := tp.NewPeer(
 		tp.PeerConfig{},
-		heartbeat.NewPing(time.Second),
+		heartbeat.NewPing(3),
 	)
 	cli.Dial(":9090")
 	time.Sleep(time.Second * 10)

@@ -32,6 +32,8 @@ type (
 	Pong interface {
 		Name() string
 		PostNewPeer(peer tp.EarlyPeer) error
+		PostWritePull(ctx tp.WriteCtx) *tp.Rerror
+		PostWritePush(ctx tp.WriteCtx) *tp.Rerror
 		PostReadPullHeader(ctx tp.ReadCtx) *tp.Rerror
 		PostReadPushHeader(ctx tp.ReadCtx) *tp.Rerror
 	}
@@ -40,6 +42,8 @@ type (
 
 var (
 	_ tp.PostNewPeerPlugin        = Pong(nil)
+	_ tp.PostWritePullPlugin      = Pong(nil)
+	_ tp.PostWritePushPlugin      = Pong(nil)
 	_ tp.PostReadPullHeaderPlugin = Pong(nil)
 	_ tp.PostReadPushHeaderPlugin = Pong(nil)
 )
@@ -51,12 +55,13 @@ func (h *heartPong) Name() string {
 func (h *heartPong) PostNewPeer(peer tp.EarlyPeer) error {
 	peer.RoutePull(new(heart))
 	rangeSession := peer.RangeSession
-	interval := time.Second
+	const initial = time.Second*minRateSecond - 1
+	interval := initial
 	go func() {
 		for {
 			time.Sleep(interval)
 			rangeSession(func(sess tp.Session) bool {
-				info, ok := getHeartbeatInfo(sess)
+				info, ok := getHeartbeatInfo(sess.Public())
 				if !ok {
 					return true
 				}
@@ -64,7 +69,7 @@ func (h *heartPong) PostNewPeer(peer tp.EarlyPeer) error {
 				if !sess.Health() || cp.last.Add(cp.rate*2).Before(coarsetime.CeilingTimeNow()) {
 					sess.Close()
 				}
-				if cp.rate < interval {
+				if cp.rate < interval || interval == initial {
 					interval = cp.rate
 				}
 				return true
@@ -84,6 +89,19 @@ func (h *heartPong) PostReadPushHeader(ctx tp.ReadCtx) *tp.Rerror {
 	return nil
 }
 
+func (h *heartPong) PostWritePull(ctx tp.WriteCtx) *tp.Rerror {
+	return h.PostWritePush(ctx)
+}
+
+func (h *heartPong) PostWritePush(ctx tp.WriteCtx) *tp.Rerror {
+	sess := ctx.Session()
+	if !sess.Health() {
+		return nil
+	}
+	updateHeartbeatInfo(sess.Public(), -1)
+	return nil
+}
+
 func (h *heartPong) update(ctx tp.ReadCtx) {
 	if ctx.Path() == heartbeatUri {
 		return
@@ -92,7 +110,7 @@ func (h *heartPong) update(ctx tp.ReadCtx) {
 	if !sess.Health() {
 		return
 	}
-	updateHeartbeatInfo(sess, -1)
+	updateHeartbeatInfo(sess.Public(), -1)
 }
 
 const (
@@ -106,23 +124,27 @@ type heart struct {
 
 func (h *heart) Beat(*interface{}) (interface{}, *tp.Rerror) {
 	sess := h.Session()
-	tp.Tracef("%s heartbeat: pong", sess.Id())
 	rateStr := h.Query().Get(heartbeatQueryKey)
-	rate := getHeartbeatRate(rateStr)
-	if rate == -1 {
-		return nil, tp.NewRerror(tp.CodeBadPacket, "invalid heart rate", rateStr)
+	rateSecond := parseHeartbeatRateSecond(rateStr)
+	if rateSecond == -1 {
+		return nil, tp.NewRerror(tp.CodeBadPacket, "invalid heart rate(/s)", rateStr)
 	}
-	updateHeartbeatInfo(sess, rate)
+	if rateSecond == 0 {
+		tp.Tracef("heart-pong: %s", sess.Id())
+	} else {
+		tp.Tracef("heart-pong: %s, set rate: %ds", sess.Id(), rateSecond)
+	}
+	updateHeartbeatInfo(sess.Public(), time.Second*time.Duration(rateSecond))
 	return nil, nil
 }
 
-func getHeartbeatRate(s string) time.Duration {
+func parseHeartbeatRateSecond(s string) int {
 	if len(s) == 0 {
 		return -1
 	}
-	r, err := strconv.ParseInt(s, 10, 64)
+	r, err := strconv.Atoi(s)
 	if err != nil || r <= 0 {
 		return 0
 	}
-	return time.Duration(r)
+	return r
 }

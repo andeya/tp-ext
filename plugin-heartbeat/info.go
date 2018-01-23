@@ -20,10 +20,12 @@ import (
 
 	"github.com/henrylee2cn/goutil"
 	"github.com/henrylee2cn/goutil/coarsetime"
-	tp "github.com/henrylee2cn/teleport"
 )
 
-const heartbeatKey = "_HB_"
+const (
+	heartbeatKey  = "_hb"
+	minRateSecond = 3
+)
 
 // heartbeatInfo heartbeat info
 type heartbeatInfo struct {
@@ -65,8 +67,8 @@ func initHeartbeatInfo(m goutil.Map, rate time.Duration) {
 }
 
 // getHeartbeatInfo gets heartbeat info from session.
-func getHeartbeatInfo(sess tp.BaseSession) (*heartbeatInfo, bool) {
-	_info, ok := sess.Public().Load(heartbeatKey)
+func getHeartbeatInfo(m goutil.Map) (*heartbeatInfo, bool) {
+	_info, ok := m.Load(heartbeatKey)
 	if !ok {
 		return nil, false
 	}
@@ -74,9 +76,12 @@ func getHeartbeatInfo(sess tp.BaseSession) (*heartbeatInfo, bool) {
 }
 
 // updateHeartbeatInfo updates heartbeat info of session.
-func updateHeartbeatInfo(sess tp.Session, rate time.Duration) {
-	info, ok := getHeartbeatInfo(sess)
+func updateHeartbeatInfo(m goutil.Map, rate time.Duration) {
+	info, ok := getHeartbeatInfo(m)
 	if !ok {
+		if rate > 0 {
+			initHeartbeatInfo(m, rate)
+		}
 		return
 	}
 	info.mu.Lock()
