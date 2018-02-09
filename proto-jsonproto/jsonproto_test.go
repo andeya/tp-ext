@@ -5,7 +5,6 @@ import (
 	"time"
 
 	tp "github.com/henrylee2cn/teleport"
-	"github.com/henrylee2cn/teleport/socket"
 	jsonproto "github.com/henrylee2cn/tp-ext/proto-jsonproto"
 )
 
@@ -44,8 +43,8 @@ func TestJsonProto(t *testing.T) {
 			"bytes": []byte("test bytes"),
 		},
 		&reply,
-		socket.WithAddMeta("add", "1"),
-		socket.WithXferPipe('g'),
+		tp.WithAddMeta("add", "1"),
+		tp.WithXferPipe('g'),
 	).Rerror()
 	if rerr != nil {
 		t.Error(rerr)

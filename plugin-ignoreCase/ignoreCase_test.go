@@ -5,7 +5,6 @@ import (
 	"time"
 
 	tp "github.com/henrylee2cn/teleport"
-	"github.com/henrylee2cn/teleport/socket"
 	ignoreCase "github.com/henrylee2cn/tp-ext/plugin-ignoreCase"
 )
 
@@ -48,7 +47,7 @@ func TestIngoreCase(t *testing.T) {
 			"bytes": []byte("test bytes"),
 		},
 		&reply,
-		socket.WithAddMeta("add", "1"),
+		tp.WithAddMeta("add", "1"),
 	).Rerror()
 	if rerr != nil {
 		t.Error(rerr)

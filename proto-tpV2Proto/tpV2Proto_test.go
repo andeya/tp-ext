@@ -5,7 +5,6 @@ import (
 	"time"
 
 	tp "github.com/henrylee2cn/teleport"
-	"github.com/henrylee2cn/teleport/socket"
 	tpV2Proto "github.com/henrylee2cn/tp-ext/proto-tpV2Proto"
 )
 
@@ -41,8 +40,8 @@ func TestTpV2Proto(t *testing.T) {
 		// },
 		nil,
 		&reply,
-		socket.WithAddMeta("add", "1"),
-		socket.WithSetMeta("set", "2"),
+		tp.WithAddMeta("add", "1"),
+		tp.WithSetMeta("set", "2"),
 	).Rerror()
 	if rerr != nil {
 		t.Error(rerr)

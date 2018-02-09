@@ -16,7 +16,6 @@ import (
 	"time"
 
 	tp "github.com/henrylee2cn/teleport"
-	"github.com/henrylee2cn/teleport/socket"
 	"github.com/henrylee2cn/teleport/xfer"
 	md5Hash "github.com/henrylee2cn/tp-ext/xfer-md5Hash"
 )
@@ -68,7 +67,7 @@ func TestCombined(t *testing.T) {
 		},
 		&reply,
 		// Use custom filter
-		socket.WithXferPipe('m'),
+		tp.WithXferPipe('m'),
 	).Rerror()
 	if rerr != nil {
 		t.Error(rerr)
