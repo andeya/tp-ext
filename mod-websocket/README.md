@@ -88,3 +88,31 @@ test command:
 go test -v -run=TestJsonSubWebsocket
 go test -v -run=TestPbSubWebsocket
 ```
+
+Among them, TestJsonSubWebsocket's request body is:
+
+```json
+{
+  "seq": 0,
+  "ptype": 1,
+  "uri": "/p/divide",
+  "meta": "",
+  "body_codec": 106,
+  "body": "{\"A\":10,\"B\":2}",
+  "xfer_pipe": []
+}
+```
+
+TestJsonSubWebsocket's response body is:
+
+```json
+{
+  "seq": 0,
+  "ptype": 2,
+  "uri": "/p/divide",
+  "meta": "",
+  "body_codec": 106,
+  "body": "5",
+  "xfer_pipe": []
+}
+```

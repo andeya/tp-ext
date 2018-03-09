@@ -38,7 +38,9 @@ func TestJsonSubWebsocket(t *testing.T) {
 	rerr := sess.Pull("/p/divide", &Args{
 		A: 10,
 		B: 2,
-	}, &reply).Rerror()
+	}, &reply,
+	// tp.WithXferPipe('g'),
+	).Rerror()
 	if rerr != nil {
 		t.Fatal(rerr)
 	}
@@ -62,7 +64,9 @@ func TestPbSubWebsocket(t *testing.T) {
 	rerr := sess.Pull("/p/divide", &Args{
 		A: 10,
 		B: 2,
-	}, &reply).Rerror()
+	}, &reply,
+	// tp.WithXferPipe('g'),
+	).Rerror()
 	if rerr != nil {
 		t.Fatal(rerr)
 	}
