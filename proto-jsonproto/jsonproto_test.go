@@ -5,7 +5,6 @@ import (
 	"time"
 
 	tp "github.com/henrylee2cn/teleport"
-	"github.com/henrylee2cn/teleport/socket"
 	jsonproto "github.com/henrylee2cn/tp-ext/proto-jsonproto"
 )
 
@@ -36,9 +35,7 @@ func TestJsonProto(t *testing.T) {
 	cli.RoutePush(new(Push))
 	sess, err := cli.Dial(":9090", jsonproto.NewProtoFunc)
 	if err != nil {
-		if err != nil {
-			t.Error(err)
-		}
+		t.Error(err)
 	}
 	var reply interface{}
 	rerr := sess.Pull("/home/test?peer_id=110",
@@ -46,8 +43,8 @@ func TestJsonProto(t *testing.T) {
 			"bytes": []byte("test bytes"),
 		},
 		&reply,
-		socket.WithAddMeta("add", "1"),
-		socket.WithXferPipe('g'),
+		tp.WithAddMeta("add", "1"),
+		tp.WithXferPipe('g'),
 	).Rerror()
 	if rerr != nil {
 		t.Error(rerr)

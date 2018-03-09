@@ -1,14 +1,3 @@
-## cliSession
-
-Client session which has connection pool.
-
-### Usage
-
-`import cliSession "github.com/henrylee2cn/tp-ext/sundry-cliSession"`
-
-#### Test
-
-```go
 package cliSession_test
 
 import (
@@ -16,7 +5,7 @@ import (
 	"time"
 
 	tp "github.com/henrylee2cn/teleport"
-	cliSession "github.com/henrylee2cn/tp-ext/sundry-cliSession"
+	cliSession "github.com/henrylee2cn/tp-ext/mod-cliSession"
 )
 
 type Args struct {
@@ -69,10 +58,3 @@ func TestCliSession(t *testing.T) {
 	cli.Close()
 	time.Sleep(time.Second * 3)
 }
-```
-
-test command:
-
-```sh
-go test -v -run=TestCliSession
-```

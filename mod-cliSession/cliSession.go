@@ -25,6 +25,7 @@ import (
 
 // CliSession client session which is has connection pool
 type CliSession struct {
+	addr string
 	peer tp.Peer
 	pool *pool.Workshop
 }
@@ -36,9 +37,30 @@ func New(peer tp.Peer, addr string, sessMaxQuota int, sessMaxIdleDuration time.D
 		return sess, rerr.ToError()
 	}
 	return &CliSession{
+		addr: addr,
 		peer: peer,
 		pool: pool.NewWorkshop(sessMaxQuota, sessMaxIdleDuration, newWorkerFunc),
 	}
+}
+
+// Addr returns the address.
+func (c *CliSession) Addr() string {
+	return c.addr
+}
+
+// Peer returns the peer.
+func (c *CliSession) Peer() tp.Peer {
+	return c.peer
+}
+
+// Close closes the session.
+func (c *CliSession) Close() {
+	c.pool.Close()
+}
+
+// Stats returns the current session pool stats.
+func (c *CliSession) Stats() pool.WorkshopStats {
+	return c.pool.Stats()
 }
 
 // AsyncPull sends a packet and receives reply asynchronously.
@@ -46,7 +68,7 @@ func New(peer tp.Peer, addr string, sessMaxQuota int, sessMaxIdleDuration time.D
 func (c *CliSession) AsyncPull(uri string, args interface{}, reply interface{}, done chan tp.PullCmd, setting ...socket.PacketSetting) {
 	_sess, err := c.pool.Hire()
 	if err != nil {
-		done <- NewFakePullCmd(c.peer, uri, args, reply, tp.ToRerror(err), setting...)
+		done <- tp.NewFakePullCmd(uri, args, reply, tp.ToRerror(err))
 		return
 	}
 	sess := _sess.(tp.Session)
@@ -78,14 +100,4 @@ func (c *CliSession) Push(uri string, args interface{}, setting ...socket.Packet
 	sess := _sess.(tp.Session)
 	defer c.pool.Fire(sess)
 	return sess.Push(uri, args, setting...)
-}
-
-// Close closes the session.
-func (c *CliSession) Close() {
-	c.pool.Close()
-}
-
-// Stats returns the current session pool stats.
-func (c *CliSession) Stats() pool.WorkshopStats {
-	return c.pool.Stats()
 }
