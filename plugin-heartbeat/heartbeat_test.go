@@ -8,7 +8,7 @@ import (
 	heartbeat "github.com/henrylee2cn/tp-ext/plugin-heartbeat"
 )
 
-func TestHeartbeat1(t *testing.T) {
+func TestHeartbeat11(t *testing.T) {
 	srv := tp.NewPeer(
 		tp.PeerConfig{ListenAddress: ":9090"},
 		heartbeat.NewPong(),
@@ -24,7 +24,7 @@ func TestHeartbeat1(t *testing.T) {
 	time.Sleep(time.Second * 10)
 }
 
-func TestHeartbeat11(t *testing.T) {
+func TestHeartbeat12(t *testing.T) {
 	srv := tp.NewPeer(
 		tp.PeerConfig{ListenAddress: ":9090"},
 		heartbeat.NewPong(),
@@ -44,7 +44,7 @@ func TestHeartbeat11(t *testing.T) {
 	time.Sleep(time.Second * 5)
 }
 
-func TestHeartbeat2(t *testing.T) {
+func TestHeartbeat21(t *testing.T) {
 	srv := tp.NewPeer(
 		tp.PeerConfig{ListenAddress: ":9090"},
 		heartbeat.NewPing(3),

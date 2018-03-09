@@ -28,6 +28,7 @@ import (
 // NewPing returns a heartbeat sender plugin.
 func NewPing(rateSecond int) Ping {
 	p := new(heartPing)
+	p.doneCh = make(chan tp.PullCmd, 8)
 	p.SetRate(rateSecond)
 	return p
 }
@@ -50,6 +51,7 @@ type (
 		peer     tp.Peer
 		pingRate time.Duration
 		uri      string
+		doneCh   chan tp.PullCmd
 		mu       sync.RWMutex
 		once     sync.Once
 	}
@@ -95,6 +97,12 @@ func (h *heartPing) Name() string {
 
 func (h *heartPing) PostNewPeer(peer tp.EarlyPeer) error {
 	rangeSession := peer.RangeSession
+	go func() {
+		for range h.doneCh {
+			// Consume the channel,
+			// avoid blocking when writing.
+		}
+	}()
 	go func() {
 		for {
 			time.Sleep(h.getRate())
@@ -143,13 +151,8 @@ func (h *heartPing) tryPull(sess tp.Session) *tp.Rerror {
 	if !ok || cp.last.Add(cp.rate).After(coarsetime.CeilingTimeNow()) {
 		return nil
 	}
-	rerr := sess.Pull(h.getUri(), nil, nil).Rerror()
-	if rerr == nil {
-		tp.Tracef("heart-ping: %s", sess.RemoteIp())
-	} else {
-		tp.Errorf("heart-ping: %s, error: %s", sess.RemoteIp(), rerr.String())
-	}
-	return rerr
+	sess.AsyncPull(h.getUri(), nil, nil, h.doneCh)
+	return nil
 }
 
 func (h *heartPing) update(ctx tp.PreCtx) {
