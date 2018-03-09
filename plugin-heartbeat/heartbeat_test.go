@@ -74,7 +74,7 @@ func TestHeartbeat22(t *testing.T) {
 	)
 	sess, _ := cli.Dial(":9090")
 	for i := 0; i < 8; i++ {
-		sess.Pull("/", nil, nil)
+		sess.Push("/", nil)
 		time.Sleep(time.Second)
 	}
 	time.Sleep(time.Second * 5)

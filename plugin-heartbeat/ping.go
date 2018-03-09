@@ -28,7 +28,6 @@ import (
 // NewPing returns a heartbeat sender plugin.
 func NewPing(rateSecond int) Ping {
 	p := new(heartPing)
-	p.doneCh = make(chan tp.PullCmd, 8)
 	p.SetRate(rateSecond)
 	return p
 }
@@ -51,7 +50,6 @@ type (
 		peer     tp.Peer
 		pingRate time.Duration
 		uri      string
-		doneCh   chan tp.PullCmd
 		mu       sync.RWMutex
 		once     sync.Once
 	}
@@ -98,18 +96,19 @@ func (h *heartPing) Name() string {
 func (h *heartPing) PostNewPeer(peer tp.EarlyPeer) error {
 	rangeSession := peer.RangeSession
 	go func() {
-		for range h.doneCh {
-			// Consume the channel,
-			// avoid blocking when writing.
-		}
-	}()
-	go func() {
 		for {
 			time.Sleep(h.getRate())
 			rangeSession(func(sess tp.Session) bool {
-				if !sess.Health() || h.tryPull(sess) != nil {
+				if !sess.Health() {
 					sess.Close()
+					return true
 				}
+				info, ok := getHeartbeatInfo(sess.Public())
+				cp := info.elemCopy()
+				if !ok || cp.last.Add(cp.rate).After(coarsetime.CeilingTimeNow()) {
+					return true
+				}
+				h.goPush(sess)
 				return true
 			})
 		}
@@ -145,14 +144,12 @@ func (h *heartPing) PostReadPushHeader(ctx tp.ReadCtx) *tp.Rerror {
 	return nil
 }
 
-func (h *heartPing) tryPull(sess tp.Session) *tp.Rerror {
-	info, ok := getHeartbeatInfo(sess.Public())
-	cp := info.elemCopy()
-	if !ok || cp.last.Add(cp.rate).After(coarsetime.CeilingTimeNow()) {
-		return nil
-	}
-	sess.AsyncPull(h.getUri(), nil, nil, h.doneCh)
-	return nil
+func (h *heartPing) goPush(sess tp.Session) {
+	tp.Go(func() {
+		if sess.Push(h.getUri(), nil) != nil {
+			sess.Close()
+		}
+	})
 }
 
 func (h *heartPing) update(ctx tp.PreCtx) {
