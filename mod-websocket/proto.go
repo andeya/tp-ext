@@ -15,6 +15,7 @@
 package websocket
 
 import (
+	"bytes"
 	"io"
 
 	tp "github.com/henrylee2cn/teleport"
@@ -35,17 +36,17 @@ func NewWsProtoFunc(subProto ...socket.ProtoFunc) socket.ProtoFunc {
 				return socket.DefaultProtoFunc()(rw)
 			}
 		}
-		buf := &utils.ByteBuffer{}
+		subConn := newVirtualConn()
 		p := &wsProto{
-			id:   'w',
-			name: "websocket",
-			conn: conn,
-			buf:  buf,
+			id:      'w',
+			name:    "websocket",
+			conn:    conn,
+			subConn: subConn,
 		}
 		if len(subProto) > 0 {
-			p.subProto = subProto[0](buf)
+			p.subProto = subProto[0](subConn)
 		} else {
-			p.subProto = socket.DefaultProtoFunc()(buf)
+			p.subProto = socket.DefaultProtoFunc()(subConn)
 		}
 		return p
 	}
@@ -56,7 +57,7 @@ type wsProto struct {
 	name     string
 	conn     *ws.Conn
 	subProto socket.Proto
-	buf      *utils.ByteBuffer
+	subConn  *virtualConn
 }
 
 // Version returns the protocol's id and name.
@@ -67,21 +68,44 @@ func (w *wsProto) Version() (byte, string) {
 // Pack writes the Packet into the connection.
 // Note: Make sure to write only once or there will be package contamination!
 func (w *wsProto) Pack(p *socket.Packet) error {
-	w.buf.Reset()
+	w.subConn.w.Reset()
 	err := w.subProto.Pack(p)
 	if err != nil {
 		return err
 	}
-	return ws.Message.Send(w.conn, w.buf.Bytes())
+	return ws.Message.Send(w.conn, w.subConn.w.Bytes())
 }
 
 // Unpack reads bytes from the connection to the Packet.
 // Note: Concurrent unsafe!
 func (w *wsProto) Unpack(p *socket.Packet) error {
-	w.buf.Reset()
-	err := ws.Message.Receive(w.conn, &w.buf.B)
+	err := ws.Message.Receive(w.conn, w.subConn.rBytes)
 	if err != nil {
 		return err
 	}
+	w.subConn.r = bytes.NewBuffer(*w.subConn.rBytes)
 	return w.subProto.Unpack(p)
+}
+
+func newVirtualConn() *virtualConn {
+	buf := new([]byte)
+	return &virtualConn{
+		rBytes: buf,
+		r:      bytes.NewBuffer(*buf),
+		w:      utils.AcquireByteBuffer(),
+	}
+}
+
+type virtualConn struct {
+	rBytes *[]byte
+	r      *bytes.Buffer
+	w      *utils.ByteBuffer
+}
+
+func (v *virtualConn) Read(p []byte) (int, error) {
+	return v.r.Read(p)
+}
+
+func (v *virtualConn) Write(p []byte) (int, error) {
+	return v.w.Write(p)
 }
