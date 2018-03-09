@@ -21,8 +21,8 @@ import (
 
 	tp "github.com/henrylee2cn/teleport"
 	"github.com/henrylee2cn/teleport/socket"
-	jsonSubProto "github.com/henrylee2cn/tp-ext/mod-websocket/jsonSubProto"
-	pbSubProto "github.com/henrylee2cn/tp-ext/mod-websocket/pbSubProto"
+	"github.com/henrylee2cn/tp-ext/mod-websocket/jsonSubProto"
+	"github.com/henrylee2cn/tp-ext/mod-websocket/pbSubProto"
 	ws "github.com/henrylee2cn/tp-ext/mod-websocket/websocket"
 )
 

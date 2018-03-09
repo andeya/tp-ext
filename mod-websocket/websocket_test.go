@@ -7,8 +7,8 @@ import (
 
 	tp "github.com/henrylee2cn/teleport"
 	websocket "github.com/henrylee2cn/tp-ext/mod-websocket"
-	jsonSubProto "github.com/henrylee2cn/tp-ext/mod-websocket/jsonSubProto"
-	pbSubProto "github.com/henrylee2cn/tp-ext/mod-websocket/pbSubProto"
+	"github.com/henrylee2cn/tp-ext/mod-websocket/jsonSubProto"
+	"github.com/henrylee2cn/tp-ext/mod-websocket/pbSubProto"
 )
 
 type Args struct {
