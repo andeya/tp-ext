@@ -21,8 +21,20 @@ import (
 
 	tp "github.com/henrylee2cn/teleport"
 	"github.com/henrylee2cn/teleport/socket"
+	jsonSubProto "github.com/henrylee2cn/tp-ext/mod-websocket/jsonSubProto"
+	pbSubProto "github.com/henrylee2cn/tp-ext/mod-websocket/pbSubProto"
 	ws "github.com/henrylee2cn/tp-ext/mod-websocket/websocket"
 )
+
+// NewJsonServeHandler creates a websocket json handler.
+func NewJsonServeHandler(peer tp.Peer, handshake func(*ws.Config, *http.Request) error) http.Handler {
+	return NewServeHandler(peer, handshake, jsonSubProto.NewJsonSubProtoFunc)
+}
+
+// NewPbServeHandler creates a websocket protobuf handler.
+func NewPbServeHandler(peer tp.Peer, handshake func(*ws.Config, *http.Request) error) http.Handler {
+	return NewServeHandler(peer, handshake, pbSubProto.NewPbSubProtoFunc)
+}
 
 // NewServeHandler creates a websocket handler.
 func NewServeHandler(peer tp.Peer, handshake func(*ws.Config, *http.Request) error, protoFunc ...socket.ProtoFunc) http.Handler {
