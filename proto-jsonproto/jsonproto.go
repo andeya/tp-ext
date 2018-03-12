@@ -32,9 +32,9 @@ import (
 	"github.com/henrylee2cn/teleport/utils"
 )
 
-// NewProtoFunc is creation function of JSON socket protocol.
+// NewJsonProtoFunc is creation function of JSON socket protocol.
 //  Packet data demo: `83{"seq":%d,"ptype":%d,"uri":%q,"meta":%q,"body_codec":%d,"body":"%s","xfer_pipe":%s}`
-var NewProtoFunc = func(rw io.ReadWriter) socket.Proto {
+var NewJsonProtoFunc = func(rw io.ReadWriter) socket.Proto {
 	var (
 		readBufioSize             int
 		readBufferSize, isDefault = socket.ReadBuffer()
