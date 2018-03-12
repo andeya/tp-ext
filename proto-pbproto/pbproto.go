@@ -1,19 +1,20 @@
-// Package pbSubProto is implemented PROTOBUF socket communication protocol.
-package pbSubProto
+// Package pbproto is implemented PROTOBUF socket communication protocol.
+package pbproto
 
 import (
 	"bufio"
+	"encoding/binary"
 	"io"
-	"io/ioutil"
 	"sync"
 
 	"github.com/henrylee2cn/teleport/codec"
 	"github.com/henrylee2cn/teleport/socket"
-	"github.com/henrylee2cn/tp-ext/mod-websocket/pbSubProto/pb"
+	"github.com/henrylee2cn/teleport/utils"
+	"github.com/henrylee2cn/tp-ext/proto-pbproto/pb"
 )
 
-// NewPbSubProtoFunc is creation function of PROTOBUF socket protocol.
-var NewPbSubProtoFunc = func(rw io.ReadWriter) socket.Proto {
+// NewPbProtoFunc is creation function of PROTOBUF socket protocol.
+var NewPbProtoFunc = func(rw io.ReadWriter) socket.Proto {
 	var (
 		readBufioSize             int
 		readBufferSize, isDefault = socket.ReadBuffer()
@@ -25,7 +26,7 @@ var NewPbSubProtoFunc = func(rw io.ReadWriter) socket.Proto {
 	} else {
 		readBufioSize = readBufferSize / 2
 	}
-	return &pbSubProto{
+	return &pbproto{
 		id:   'p',
 		name: "protobuf",
 		r:    bufio.NewReaderSize(rw, readBufioSize),
@@ -33,7 +34,7 @@ var NewPbSubProtoFunc = func(rw io.ReadWriter) socket.Proto {
 	}
 }
 
-type pbSubProto struct {
+type pbproto struct {
 	id   byte
 	name string
 	r    *bufio.Reader
@@ -42,13 +43,13 @@ type pbSubProto struct {
 }
 
 // Version returns the protocol's id and name.
-func (psp *pbSubProto) Version() (byte, string) {
-	return psp.id, psp.name
+func (pp *pbproto) Version() (byte, string) {
+	return pp.id, pp.name
 }
 
 // Pack writes the Packet into the connection.
 // Note: Make sure to write only once or there will be package contamination!
-func (psp *pbSubProto) Pack(p *socket.Packet) error {
+func (pp *pbproto) Pack(p *socket.Packet) error {
 	// marshal body
 	bodyBytes, err := p.MarshalBody()
 	if err != nil {
@@ -74,25 +75,40 @@ func (psp *pbSubProto) Pack(p *socket.Packet) error {
 	}
 
 	p.SetSize(uint32(len(b)))
-
-	_, err = psp.w.Write(b)
+	var all = make([]byte, p.Size()+4)
+	binary.BigEndian.PutUint32(all, p.Size())
+	copy(all[4:], b)
+	_, err = pp.w.Write(all)
 	return err
 }
 
 // Unpack reads bytes from the connection to the Packet.
 // Note: Concurrent unsafe!
-func (psp *pbSubProto) Unpack(p *socket.Packet) error {
-	psp.rMu.Lock()
-	defer psp.rMu.Unlock()
-	b, err := ioutil.ReadAll(psp.r)
+func (pp *pbproto) Unpack(p *socket.Packet) error {
+	pp.rMu.Lock()
+	defer pp.rMu.Unlock()
+	var size uint32
+	err := binary.Read(pp.r, binary.BigEndian, &size)
+	if err != nil {
+		return err
+	}
+	if err = p.SetSize(size); err != nil {
+		return err
+	}
+	if p.Size() == 0 {
+		return nil
+	}
+
+	bb := utils.AcquireByteBuffer()
+	defer utils.ReleaseByteBuffer(bb)
+	bb.ChangeLen(int(p.Size()))
+	_, err = io.ReadFull(pp.r, bb.B)
 	if err != nil {
 		return err
 	}
 
-	p.SetSize(uint32(len(b)))
-
 	s := &pb.Format{}
-	err = codec.ProtoUnmarshal(b, s)
+	err = codec.ProtoUnmarshal(bb.B, s)
 	if err != nil {
 		return err
 	}

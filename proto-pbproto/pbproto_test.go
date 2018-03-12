@@ -1,36 +1,11 @@
-## jsonproto
-
-jsonproto is implemented JSON socket communication protocol.
-
-
-### Data Packet
-
-`Length``JSON`
-
-- `Length`: uint32, 4 bytes, big endian
-- `JSON`: {"seq":%d,"ptype":%d,"uri":%q,"meta":%q,"body_codec":%d,"body":"%s","xfer_pipe":%s}
-
-Demo:
-
-```
-83{"seq":%d,"ptype":%d,"uri":%q,"meta":%q,"body_codec":%d,"body":"%s","xfer_pipe":%s}
-```
-
-### Usage
-
-`import jsonproto "github.com/henrylee2cn/tp-ext/proto-jsonproto"`
-
-#### Test
-
-```go
-package jsonproto_test
+package pbproto_test
 
 import (
 	"testing"
 	"time"
 
 	tp "github.com/henrylee2cn/teleport"
-	jsonproto "github.com/henrylee2cn/tp-ext/proto-jsonproto"
+	pbproto "github.com/henrylee2cn/tp-ext/proto-pbproto"
 )
 
 type Home struct {
@@ -48,17 +23,17 @@ func (h *Home) Test(args *map[string]interface{}) (map[string]interface{}, *tp.R
 	}, nil
 }
 
-func TestJsonProto(t *testing.T) {
-	// Server
+func TestPbProto(t *testing.T) {
+	// server
 	svr := tp.NewPeer(tp.PeerConfig{ListenAddress: ":9090"})
 	svr.RoutePull(new(Home))
-	go svr.Listen(jsonproto.NewJsonProtoFunc)
+	go svr.Listen(pbproto.NewPbProtoFunc)
 	time.Sleep(1e9)
 
-	// Client
+	// client
 	cli := tp.NewPeer(tp.PeerConfig{})
 	cli.RoutePush(new(Push))
-	sess, err := cli.Dial(":9090", jsonproto.NewJsonProtoFunc)
+	sess, err := cli.Dial(":9090", pbproto.NewPbProtoFunc)
 	if err != nil {
 		t.Error(err)
 	}
@@ -86,10 +61,3 @@ func (p *Push) Test(args *map[string]interface{}) *tp.Rerror {
 	tp.Infof("receive push(%s):\nargs: %#v\n", p.Ip(), args)
 	return nil
 }
-```
-
-test command:
-
-```sh
-go test -v -run=TestJsonProto
-```
