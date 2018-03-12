@@ -21,8 +21,11 @@ import (
 	tp "github.com/henrylee2cn/teleport"
 	"github.com/henrylee2cn/teleport/socket"
 	"github.com/henrylee2cn/teleport/utils"
+	"github.com/henrylee2cn/tp-ext/mod-websocket/jsonSubProto"
 	ws "github.com/henrylee2cn/tp-ext/mod-websocket/websocket"
 )
+
+var defaultProto = jsonSubProto.NewJsonSubProtoFunc
 
 // NewWsProtoFunc wraps a protocol to a new websocket protocol.
 func NewWsProtoFunc(subProto ...socket.ProtoFunc) socket.ProtoFunc {
@@ -46,7 +49,7 @@ func NewWsProtoFunc(subProto ...socket.ProtoFunc) socket.ProtoFunc {
 		if len(subProto) > 0 {
 			p.subProto = subProto[0](subConn)
 		} else {
-			p.subProto = socket.DefaultProtoFunc()(subConn)
+			p.subProto = defaultProto(subConn)
 		}
 		return p
 	}

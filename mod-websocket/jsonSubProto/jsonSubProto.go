@@ -12,7 +12,6 @@ import (
 
 	"github.com/henrylee2cn/goutil"
 	"github.com/henrylee2cn/teleport/socket"
-	"github.com/henrylee2cn/teleport/utils"
 	"github.com/tidwall/gjson"
 )
 
@@ -74,8 +73,9 @@ func (j *jsonSubProto) Pack(p *socket.Packet) error {
 	if err != nil {
 		return err
 	}
+
 	// join json format
-	var s = fmt.Sprintf(format,
+	s := fmt.Sprintf(format,
 		p.Seq(),
 		p.Ptype(),
 		p.Uri(),
@@ -85,7 +85,11 @@ func (j *jsonSubProto) Pack(p *socket.Packet) error {
 		xferPipeIdsBytes,
 	)
 
-	_, err = j.w.Write([]byte(s))
+	b := goutil.StringToBytes(s)
+
+	p.SetSize(uint32(len(b)))
+
+	_, err = j.w.Write(b)
 	return err
 }
 
@@ -94,14 +98,14 @@ func (j *jsonSubProto) Pack(p *socket.Packet) error {
 func (j *jsonSubProto) Unpack(p *socket.Packet) error {
 	j.rMu.Lock()
 	defer j.rMu.Unlock()
-	bb := utils.AcquireByteBuffer()
-	defer utils.ReleaseByteBuffer(bb)
-	var err error
-	bb.B, err = ioutil.ReadAll(j.r)
+	b, err := ioutil.ReadAll(j.r)
 	if err != nil {
 		return err
 	}
-	s := string(bb.B)
+
+	p.SetSize(uint32(len(b)))
+
+	s := goutil.BytesToString(b)
 
 	// read transfer pipe
 	xferPipe := gjson.Get(s, "xfer_pipe")
@@ -112,7 +116,7 @@ func (j *jsonSubProto) Unpack(p *socket.Packet) error {
 	// read body
 	p.SetBodyCodec(byte(gjson.Get(s, "body_codec").Int()))
 	body := gjson.Get(s, "body").String()
-	bodyBytes, err := p.XferPipe().OnUnpack([]byte(body))
+	bodyBytes, err := p.XferPipe().OnUnpack(goutil.StringToBytes(body))
 	if err != nil {
 		return err
 	}

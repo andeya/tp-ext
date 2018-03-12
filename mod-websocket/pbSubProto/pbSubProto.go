@@ -3,14 +3,12 @@ package pbSubProto
 
 import (
 	"bufio"
-	"encoding/json"
 	"io"
 	"io/ioutil"
 	"sync"
 
 	"github.com/henrylee2cn/teleport/codec"
 	"github.com/henrylee2cn/teleport/socket"
-	"github.com/henrylee2cn/teleport/utils"
 	"github.com/henrylee2cn/tp-ext/mod-websocket/pbSubProto/pb"
 )
 
@@ -61,15 +59,6 @@ func (psp *pbSubProto) Pack(p *socket.Packet) error {
 	if err != nil {
 		return err
 	}
-	// marshal transfer pipe ids
-	var xferPipeIds = make([]int, p.XferPipe().Len())
-	for i, id := range p.XferPipe().Ids() {
-		xferPipeIds[i] = int(id)
-	}
-	xferPipeIdsBytes, err := json.Marshal(xferPipeIds)
-	if err != nil {
-		return err
-	}
 
 	b, err := codec.ProtoMarshal(&pb.Format{
 		Seq:       p.Seq(),
@@ -78,11 +67,13 @@ func (psp *pbSubProto) Pack(p *socket.Packet) error {
 		Meta:      p.Meta().QueryString(),
 		BodyCodec: int32(p.BodyCodec()),
 		Body:      bodyBytes,
-		XferPipe:  xferPipeIdsBytes,
+		XferPipe:  p.XferPipe().Ids(),
 	})
 	if err != nil {
 		return err
 	}
+
+	p.SetSize(uint32(len(b)))
 
 	_, err = psp.w.Write(b)
 	return err
@@ -93,15 +84,15 @@ func (psp *pbSubProto) Pack(p *socket.Packet) error {
 func (psp *pbSubProto) Unpack(p *socket.Packet) error {
 	psp.rMu.Lock()
 	defer psp.rMu.Unlock()
-	bb := utils.AcquireByteBuffer()
-	defer utils.ReleaseByteBuffer(bb)
-	var err error
-	bb.B, err = ioutil.ReadAll(psp.r)
+	b, err := ioutil.ReadAll(psp.r)
 	if err != nil {
 		return err
 	}
+
+	p.SetSize(uint32(len(b)))
+
 	s := &pb.Format{}
-	err = codec.ProtoUnmarshal(bb.B, s)
+	err = codec.ProtoUnmarshal(b, s)
 	if err != nil {
 		return err
 	}

@@ -99,9 +99,16 @@ func (h *heartPing) PostNewPeer(peer tp.EarlyPeer) error {
 		for {
 			time.Sleep(h.getRate())
 			rangeSession(func(sess tp.Session) bool {
-				if !sess.Health() || h.tryPull(sess) != nil {
+				if !sess.Health() {
 					sess.Close()
+					return true
 				}
+				info, ok := getHeartbeatInfo(sess.Public())
+				cp := info.elemCopy()
+				if !ok || cp.last.Add(cp.rate).After(coarsetime.CeilingTimeNow()) {
+					return true
+				}
+				h.goPush(sess)
 				return true
 			})
 		}
@@ -137,19 +144,12 @@ func (h *heartPing) PostReadPushHeader(ctx tp.ReadCtx) *tp.Rerror {
 	return nil
 }
 
-func (h *heartPing) tryPull(sess tp.Session) *tp.Rerror {
-	info, ok := getHeartbeatInfo(sess.Public())
-	cp := info.elemCopy()
-	if !ok || cp.last.Add(cp.rate).After(coarsetime.CeilingTimeNow()) {
-		return nil
-	}
-	rerr := sess.Pull(h.getUri(), nil, nil).Rerror()
-	if rerr == nil {
-		tp.Tracef("heart-ping: %s", sess.RemoteIp())
-	} else {
-		tp.Errorf("heart-ping: %s, error: %s", sess.RemoteIp(), rerr.String())
-	}
-	return rerr
+func (h *heartPing) goPush(sess tp.Session) {
+	tp.Go(func() {
+		if sess.Push(h.getUri(), nil) != nil {
+			sess.Close()
+		}
+	})
 }
 
 func (h *heartPing) update(ctx tp.PreCtx) {
