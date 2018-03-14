@@ -103,7 +103,7 @@ func (h *heartPong) PostWritePush(ctx tp.WriteCtx) *tp.Rerror {
 }
 
 func (h *heartPong) update(ctx tp.ReadCtx) {
-	if ctx.Path() == heartbeatUri {
+	if ctx.Path() == HeartbeatUri {
 		return
 	}
 	sess := ctx.Session()
@@ -114,7 +114,8 @@ func (h *heartPong) update(ctx tp.ReadCtx) {
 }
 
 const (
-	heartbeatUri      = "/heartbeat"
+	// HeartbeatUri heartbeat service URI
+	HeartbeatUri      = "/heartbeat"
 	heartbeatQueryKey = heartbeatKey
 )
 

@@ -72,7 +72,7 @@ func (h *heartPing) SetRate(rateSecond int) {
 	}
 	h.mu.Lock()
 	h.pingRate = time.Second * time.Duration(rateSecond)
-	h.uri = heartbeatUri + "?" + heartbeatQueryKey + "=" + strconv.Itoa(rateSecond)
+	h.uri = HeartbeatUri + "?" + heartbeatQueryKey + "=" + strconv.Itoa(rateSecond)
 	h.mu.Unlock()
 	tp.Infof("set heartbeat rate: %ds", rateSecond)
 }
