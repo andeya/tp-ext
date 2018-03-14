@@ -6,7 +6,7 @@
 ## Install
 
 ```sh
-go get -u github.com/henrylee2cn/tp-ext/...
+go get -u -f -d github.com/henrylee2cn/tp-ext/...
 ```
 
 ## Codec
