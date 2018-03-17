@@ -12,8 +12,8 @@ tag   |   key    | required |     value     |   desc
 ------|----------|----------|---------------|----------------------------------
 param |    query    | no |     -      | It indicates that the parameter is from the URI query part, else the parameter is from body. e.g. `/a/b?x={query}`
 param |   desc   |      no      |     (e.g.`id`)   | Parameter Description
-param |   len    |      no      |   (e.g.`3:6`)  | The length range [a:b] for the string type
-param |   range  |      no      |   (e.g.`0:10`)   | The value range [a:b] for the numeric type
+param |   len    |      no      |   (e.g.`3:6`)  | Length range [a,b] of parameter's value
+param |   range  |      no      |   (e.g.`0:10`)   | Numerical range [a,b] of parameter's value
 param |  nonzero |      no      |    -    | Not allowed to zero
 param |  regexp  |      no      |   (e.g.`^\w+$`)  | Regular expression validation
 param |   err    |      no      |(e.g.`wrong password format`)| Custom error message
