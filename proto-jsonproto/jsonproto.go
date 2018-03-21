@@ -155,6 +155,6 @@ func (j *jsonproto) Unpack(p *socket.Packet) error {
 	p.Meta().ParseBytes(goutil.StringToBytes(meta))
 
 	// unmarshal new body
-	err = p.UnmarshalNewBody(bodyBytes)
+	err = p.UnmarshalBody(bodyBytes)
 	return err
 }

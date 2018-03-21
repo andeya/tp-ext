@@ -240,7 +240,7 @@ func (t *tpV2Proto) readBody(bb *utils.ByteBuffer, p *socket.Packet) error {
 	}
 	p.SetBodyCodec(bb.B[0])
 	if bbLen > 1 {
-		err = p.UnmarshalNewBody(bb.B[1:])
+		err = p.UnmarshalBody(bb.B[1:])
 	}
 	return err
 }

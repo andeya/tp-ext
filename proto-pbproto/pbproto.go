@@ -132,6 +132,6 @@ func (pp *pbproto) Unpack(p *socket.Packet) error {
 	p.Meta().ParseBytes(s.Meta)
 
 	// unmarshal new body
-	err = p.UnmarshalNewBody(bodyBytes)
+	err = p.UnmarshalBody(bodyBytes)
 	return err
 }
