@@ -1,6 +1,13 @@
 ## cliSession
 
-Client session which has connection pool.
+Client session which has efficient and load balancing connection pool.
+
+### Feature
+
+- Non exclusive, shared connection pool
+- Making full use of the asynchronous communication advantages of each connection
+- Load balancing mechanism of traffic level
+- Real-time monitoring of connection status
 
 ### Usage
 
