@@ -1,4 +1,4 @@
-// CliSession client session which has connection pool.
+// Client session with a high efficient and load balanced connection pool.
 //
 // Copyright 2018 HenryLee. All Rights Reserved.
 //

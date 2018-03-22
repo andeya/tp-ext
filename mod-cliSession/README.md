@@ -1,6 +1,6 @@
 ## cliSession
 
-Client session which has efficient and load balancing connection pool.
+Client session with a high efficient and load balanced connection pool.
 
 ### Feature
 
