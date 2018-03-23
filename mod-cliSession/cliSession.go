@@ -65,15 +65,20 @@ func (c *CliSession) Stats() pool.WorkshopStats {
 
 // AsyncPull sends a packet and receives reply asynchronously.
 // If the args is []byte or *[]byte type, it can automatically fill in the body codec name.
-func (c *CliSession) AsyncPull(uri string, args interface{}, reply interface{}, done chan tp.PullCmd, setting ...socket.PacketSetting) {
+func (c *CliSession) AsyncPull(
+	uri string,
+	args interface{},
+	reply interface{},
+	pullCmdChan chan<- tp.PullCmd,
+	setting ...socket.PacketSetting,
+) tp.PullCmd {
 	_sess, err := c.pool.Hire()
 	if err != nil {
-		done <- tp.NewFakePullCmd(uri, args, reply, tp.ToRerror(err))
-		return
+		return tp.NewFakePullCmd(uri, args, reply, tp.ToRerror(err))
 	}
 	sess := _sess.(tp.Session)
 	defer c.pool.Fire(sess)
-	sess.AsyncPull(uri, args, reply, done, setting...)
+	return sess.AsyncPull(uri, args, reply, pullCmdChan, setting...)
 }
 
 // Pull sends a packet and receives reply.
@@ -81,10 +86,10 @@ func (c *CliSession) AsyncPull(uri string, args interface{}, reply interface{}, 
 // If the args is []byte or *[]byte type, it can automatically fill in the body codec name;
 // If the session is a client role and PeerConfig.RedialTimes>0, it is automatically re-called once after a failure.
 func (c *CliSession) Pull(uri string, args interface{}, reply interface{}, setting ...socket.PacketSetting) tp.PullCmd {
-	doneChan := make(chan tp.PullCmd, 1)
-	c.AsyncPull(uri, args, reply, doneChan, setting...)
-	pullCmd := <-doneChan
-	close(doneChan)
+	pullCmdChan := make(chan tp.PullCmd, 1)
+	c.AsyncPull(uri, args, reply, pullCmdChan, setting...)
+	pullCmd := <-pullCmdChan
+	close(pullCmdChan)
 	return pullCmd
 }
 
