@@ -76,7 +76,7 @@ func (c *CliSession) AsyncPull(
 	if err != nil {
 		pullCmd := tp.NewFakePullCmd(uri, args, reply, tp.ToRerror(err))
 		if pullCmdChan != nil && cap(pullCmdChan) == 0 {
-			tp.Panicf("*session.AsyncPull(): pullCmdChan channel is unbuffered")
+			tp.Panicf("*CliSession.AsyncPull(): pullCmdChan channel is unbuffered")
 		}
 		pullCmdChan <- pullCmd
 		return pullCmd
