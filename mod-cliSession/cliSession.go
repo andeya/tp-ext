@@ -74,7 +74,12 @@ func (c *CliSession) AsyncPull(
 ) tp.PullCmd {
 	_sess, err := c.pool.Hire()
 	if err != nil {
-		return tp.NewFakePullCmd(uri, args, reply, tp.ToRerror(err))
+		pullCmd := tp.NewFakePullCmd(uri, args, reply, tp.ToRerror(err))
+		if pullCmdChan != nil && cap(pullCmdChan) == 0 {
+			tp.Panicf("*session.AsyncPull(): pullCmdChan channel is unbuffered")
+		}
+		pullCmdChan <- pullCmd
+		return pullCmd
 	}
 	sess := _sess.(tp.Session)
 	defer c.pool.Fire(sess)
@@ -86,10 +91,8 @@ func (c *CliSession) AsyncPull(
 // If the args is []byte or *[]byte type, it can automatically fill in the body codec name;
 // If the session is a client role and PeerConfig.RedialTimes>0, it is automatically re-called once after a failure.
 func (c *CliSession) Pull(uri string, args interface{}, reply interface{}, setting ...socket.PacketSetting) tp.PullCmd {
-	pullCmdChan := make(chan tp.PullCmd, 1)
-	c.AsyncPull(uri, args, reply, pullCmdChan, setting...)
-	pullCmd := <-pullCmdChan
-	close(pullCmdChan)
+	pullCmd := c.AsyncPull(uri, args, reply, make(chan tp.PullCmd, 1), setting...)
+	<-pullCmd.Done()
 	return pullCmd
 }
 
