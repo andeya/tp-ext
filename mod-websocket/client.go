@@ -18,10 +18,12 @@
 package websocket
 
 import (
+	"net"
 	"path"
 	"strings"
 
 	tp "github.com/henrylee2cn/teleport"
+	"github.com/henrylee2cn/teleport/socket"
 	ws "github.com/henrylee2cn/tp-ext/mod-websocket/websocket"
 )
 
@@ -59,10 +61,14 @@ func (c *clientPlugin) PostDial(sess tp.EarlySession) *tp.Rerror {
 	if err != nil {
 		return tp.NewRerror(tp.CodeDialFailed, "upgrade to websocket failed", err.Error())
 	}
-	conn, err := ws.NewClient(cfg, sess.Conn())
-	if err != nil {
-		return tp.NewRerror(tp.CodeDialFailed, "upgrade to websocket failed", err.Error())
-	}
-	sess.ResetConn(conn, NewWsProtoFunc(sess.GetProtoFunc()))
-	return nil
+	var rerr *tp.Rerror
+	sess.ResetSocket(func(oldNet net.Conn) (newNet net.Conn, newProtoFunc socket.ProtoFunc) {
+		conn, err := ws.NewClient(cfg, oldNet)
+		if err != nil {
+			rerr = tp.NewRerror(tp.CodeDialFailed, "upgrade to websocket failed", err.Error())
+			return nil, nil
+		}
+		return conn, NewWsProtoFunc(sess.GetProtoFunc())
+	})
+	return rerr
 }
