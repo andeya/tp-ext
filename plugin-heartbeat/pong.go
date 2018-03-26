@@ -61,7 +61,7 @@ func (h *heartPong) PostNewPeer(peer tp.EarlyPeer) error {
 		for {
 			time.Sleep(interval)
 			rangeSession(func(sess tp.Session) bool {
-				info, ok := getHeartbeatInfo(sess.Public())
+				info, ok := getHeartbeatInfo(sess.Swap())
 				if !ok {
 					return true
 				}
@@ -98,7 +98,7 @@ func (h *heartPong) PostWritePush(ctx tp.WriteCtx) *tp.Rerror {
 	if !sess.Health() {
 		return nil
 	}
-	updateHeartbeatInfo(sess.Public(), -1)
+	updateHeartbeatInfo(sess.Swap(), -1)
 	return nil
 }
 
@@ -110,7 +110,7 @@ func (h *heartPong) update(ctx tp.ReadCtx) {
 	if !sess.Health() {
 		return
 	}
-	updateHeartbeatInfo(sess.Public(), -1)
+	updateHeartbeatInfo(sess.Swap(), -1)
 }
 
 const (
@@ -132,7 +132,7 @@ func heartbeat(ctx tp.PushCtx, _ *struct{}) *tp.Rerror {
 	} else {
 		tp.Tracef("heart-pong: %s, set rate: %ds", sess.Id(), rateSecond)
 	}
-	updateHeartbeatInfo(sess.Public(), time.Second*time.Duration(rateSecond))
+	updateHeartbeatInfo(sess.Swap(), time.Second*time.Duration(rateSecond))
 	return nil
 }
 

@@ -103,7 +103,7 @@ func (h *heartPing) PostNewPeer(peer tp.EarlyPeer) error {
 					sess.Close()
 					return true
 				}
-				info, ok := getHeartbeatInfo(sess.Public())
+				info, ok := getHeartbeatInfo(sess.Swap())
 				cp := info.elemCopy()
 				if !ok || cp.last.Add(cp.rate).After(coarsetime.CeilingTimeNow()) {
 					return true
@@ -122,7 +122,7 @@ func (h *heartPing) PostDial(sess tp.PreSession) *tp.Rerror {
 
 func (h *heartPing) PostAccept(sess tp.PreSession) *tp.Rerror {
 	rate := h.getRate()
-	initHeartbeatInfo(sess.Public(), rate)
+	initHeartbeatInfo(sess.Swap(), rate)
 	return nil
 }
 
@@ -157,5 +157,5 @@ func (h *heartPing) update(ctx tp.PreCtx) {
 	if !sess.Health() {
 		return
 	}
-	updateHeartbeatInfo(sess.Public(), h.getRate())
+	updateHeartbeatInfo(sess.Swap(), h.getRate())
 }
