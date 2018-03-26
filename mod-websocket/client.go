@@ -48,22 +48,22 @@ func (*clientPlugin) Name() string {
 	return "websocket"
 }
 
-func (c *clientPlugin) PostDial(sess tp.EarlySession) *tp.Rerror {
+func (c *clientPlugin) PostDial(sess tp.PreSession) *tp.Rerror {
 	var location, origin string
 	if sess.Peer().TlsConfig() == nil {
-		location = "ws://" + sess.RemoteIp() + c.pattern
-		origin = "ws://" + sess.LocalIp() + c.pattern
+		location = "ws://" + sess.RemoteAddr().String() + c.pattern
+		origin = "ws://" + sess.LocalAddr().String() + c.pattern
 	} else {
-		location = "wss://" + sess.RemoteIp() + c.pattern
-		origin = "wss://" + sess.LocalIp() + c.pattern
+		location = "wss://" + sess.RemoteAddr().String() + c.pattern
+		origin = "wss://" + sess.LocalAddr().String() + c.pattern
 	}
 	cfg, err := ws.NewConfig(location, origin)
 	if err != nil {
 		return tp.NewRerror(tp.CodeDialFailed, "upgrade to websocket failed", err.Error())
 	}
 	var rerr *tp.Rerror
-	sess.ResetSocket(func(oldNet net.Conn) (newNet net.Conn, newProtoFunc socket.ProtoFunc) {
-		conn, err := ws.NewClient(cfg, oldNet)
+	sess.ModifySocket(func(conn net.Conn) (net.Conn, socket.ProtoFunc) {
+		conn, err := ws.NewClient(cfg, conn)
 		if err != nil {
 			rerr = tp.NewRerror(tp.CodeDialFailed, "upgrade to websocket failed", err.Error())
 			return nil, nil

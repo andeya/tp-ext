@@ -37,8 +37,8 @@ type (
 	Ping interface {
 		Name() string
 		PostNewPeer(peer tp.EarlyPeer) error
-		PostDial(sess tp.EarlySession) *tp.Rerror
-		PostAccept(sess tp.EarlySession) *tp.Rerror
+		PostDial(sess tp.PreSession) *tp.Rerror
+		PostAccept(sess tp.PreSession) *tp.Rerror
 		PostWritePull(ctx tp.WriteCtx) *tp.Rerror
 		PostWritePush(ctx tp.WriteCtx) *tp.Rerror
 		PostReadPullHeader(ctx tp.ReadCtx) *tp.Rerror
@@ -116,11 +116,11 @@ func (h *heartPing) PostNewPeer(peer tp.EarlyPeer) error {
 	return nil
 }
 
-func (h *heartPing) PostDial(sess tp.EarlySession) *tp.Rerror {
+func (h *heartPing) PostDial(sess tp.PreSession) *tp.Rerror {
 	return h.PostAccept(sess)
 }
 
-func (h *heartPing) PostAccept(sess tp.EarlySession) *tp.Rerror {
+func (h *heartPing) PostAccept(sess tp.PreSession) *tp.Rerror {
 	rate := h.getRate()
 	initHeartbeatInfo(sess.Public(), rate)
 	return nil
