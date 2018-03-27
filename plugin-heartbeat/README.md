@@ -17,7 +17,7 @@ func TestHeartbeat1(t *testing.T) {
 		tp.PeerConfig{ListenAddress: ":9090"},
 		heartbeat.NewPong(),
 	)
-	go srv.Listen()
+	go srv.ListenAndServe()
 	time.Sleep(time.Second)
 
 	cli := tp.NewPeer(

@@ -42,7 +42,7 @@ func TestCliSession(t *testing.T) {
 		ListenAddress: ":9090",
 	})
 	srv.RoutePull(new(P))
-	go srv.Listen()
+	go srv.ListenAndServe()
 	time.Sleep(time.Second)
 
 	cli := cliSession.New(

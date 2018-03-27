@@ -38,9 +38,9 @@ func (h *Home) Test(args *map[string]interface{}) (map[string]interface{}, *tp.R
 
 func TestIngoreCase(t *testing.T) {
 	// Server
-	svr := tp.NewPeer(tp.PeerConfig{ListenAddress: ":9090"}, ignoreCase.NewIgnoreCase())
-	svr.RoutePull(new(Home))
-	go svr.Listen()
+	srv := tp.NewPeer(tp.PeerConfig{ListenAddress: ":9090"}, ignoreCase.NewIgnoreCase())
+	srv.RoutePull(new(Home))
+	go srv.ListenAndServe()
 	time.Sleep(1e9)
 
 	// Client

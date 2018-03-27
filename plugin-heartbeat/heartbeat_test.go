@@ -13,7 +13,7 @@ func TestHeartbeat11(t *testing.T) {
 		tp.PeerConfig{ListenAddress: ":9090"},
 		heartbeat.NewPong(),
 	)
-	go srv.Listen()
+	go srv.ListenAndServe()
 	time.Sleep(time.Second)
 
 	cli := tp.NewPeer(
@@ -29,7 +29,7 @@ func TestHeartbeat12(t *testing.T) {
 		tp.PeerConfig{ListenAddress: ":9090"},
 		heartbeat.NewPong(),
 	)
-	go srv.Listen()
+	go srv.ListenAndServe()
 	time.Sleep(time.Second)
 
 	cli := tp.NewPeer(
@@ -49,7 +49,7 @@ func TestHeartbeat21(t *testing.T) {
 		tp.PeerConfig{ListenAddress: ":9090"},
 		heartbeat.NewPing(3),
 	)
-	go srv.Listen()
+	go srv.ListenAndServe()
 	time.Sleep(time.Second)
 
 	cli := tp.NewPeer(
@@ -65,7 +65,7 @@ func TestHeartbeat22(t *testing.T) {
 		tp.PeerConfig{ListenAddress: ":9090"},
 		heartbeat.NewPing(3),
 	)
-	go srv.Listen()
+	go srv.ListenAndServe()
 	time.Sleep(time.Second)
 
 	cli := tp.NewPeer(

@@ -71,7 +71,7 @@ func TestBinder(t *testing.T) {
 	bplugin := binder.NewStructArgsBinder(10001, "error request parameter")
 	srv := tp.NewPeer(tp.PeerConfig{ListenAddress: ":9090"})
 	srv.RoutePull(new(P), bplugin)
-	go srv.Listen()
+	go srv.ListenAndServe()
 	time.Sleep(time.Second)
 
 	cli := tp.NewPeer(tp.PeerConfig{})
