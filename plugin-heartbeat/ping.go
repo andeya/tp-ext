@@ -104,8 +104,11 @@ func (h *heartPing) PostNewPeer(peer tp.EarlyPeer) error {
 					return true
 				}
 				info, ok := getHeartbeatInfo(sess.Swap())
+				if !ok {
+					return true
+				}
 				cp := info.elemCopy()
-				if !ok || cp.last.Add(cp.rate).After(coarsetime.CeilingTimeNow()) {
+				if cp.last.Add(cp.rate).After(coarsetime.CeilingTimeNow()) {
 					return true
 				}
 				h.goPush(sess)
