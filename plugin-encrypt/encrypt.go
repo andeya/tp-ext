@@ -89,8 +89,9 @@ func (e *encryptPlugin) PostReadPullBody(ctx tp.ReadCtx) *tp.Rerror {
 	}
 	rawbody, ok := ctx.Swap().Load("encrypt_rawbody")
 	if !ok {
-		tp.Fatalf("encrypt_rawbody不存在！！")
+		return tp.NewRerror(e.rerrCode, "encrypt_rawbody is not exist!", "")
 	}
+	ctx.Swap().Delete("encrypt_rawbody")
 	ctx.Input().SetBody(rawbody)
 	err = ctx.Input().UnmarshalBody(bodyBytes)
 	if err != nil {
