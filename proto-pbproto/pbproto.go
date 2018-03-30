@@ -55,29 +55,35 @@ func (pp *pbproto) Pack(p *socket.Packet) error {
 	if err != nil {
 		return err
 	}
-	// do transfer pipe
-	bodyBytes, err = p.XferPipe().OnPack(bodyBytes)
-	if err != nil {
-		return err
-	}
 
-	b, err := codec.ProtoMarshal(&pb.Format{
+	b, err := codec.ProtoMarshal(&pb.Payload{
 		Seq:       p.Seq(),
 		Ptype:     int32(p.Ptype()),
 		Uri:       p.Uri(),
 		Meta:      p.Meta().QueryString(),
 		BodyCodec: int32(p.BodyCodec()),
 		Body:      bodyBytes,
-		XferPipe:  p.XferPipe().Ids(),
 	})
 	if err != nil {
 		return err
 	}
 
-	p.SetSize(uint32(len(b)))
+	// do transfer pipe
+	b, err = p.XferPipe().OnPack(b)
+	if err != nil {
+		return err
+	}
+	xferPipeLen := p.XferPipe().Len()
+
+	// set size
+	p.SetSize(uint32(1 + xferPipeLen + len(b)))
+
+	// pack
 	var all = make([]byte, p.Size()+4)
 	binary.BigEndian.PutUint32(all, p.Size())
-	copy(all[4:], b)
+	all[4] = byte(xferPipeLen)
+	copy(all[4+1:], p.XferPipe().Ids())
+	copy(all[4+1+xferPipeLen:], b)
 	_, err = pp.w.Write(all)
 	return err
 }
@@ -107,20 +113,24 @@ func (pp *pbproto) Unpack(p *socket.Packet) error {
 		return err
 	}
 
-	s := &pb.Format{}
+	// transfer pipe
+	var xferLen = bb.B[0]
+	bb.B = bb.B[1:]
+	if xferLen > 0 {
+		err = p.XferPipe().Append(bb.B[:xferLen]...)
+		if err != nil {
+			return err
+		}
+		bb.B = bb.B[xferLen:]
+		// do transfer pipe
+		bb.B, err = p.XferPipe().OnUnpack(bb.B)
+		if err != nil {
+			return err
+		}
+	}
+
+	s := &pb.Payload{}
 	err = codec.ProtoUnmarshal(bb.B, s)
-	if err != nil {
-		return err
-	}
-
-	// read transfer pipe
-	for _, r := range s.XferPipe {
-		p.XferPipe().Append(r)
-	}
-
-	// read body
-	p.SetBodyCodec(byte(s.BodyCodec))
-	bodyBytes, err := p.XferPipe().OnUnpack(s.Body)
 	if err != nil {
 		return err
 	}
@@ -131,7 +141,8 @@ func (pp *pbproto) Unpack(p *socket.Packet) error {
 	p.SetUri(s.Uri)
 	p.Meta().ParseBytes(s.Meta)
 
-	// unmarshal new body
-	err = p.UnmarshalBody(bodyBytes)
+	// read body
+	p.SetBodyCodec(byte(s.BodyCodec))
+	err = p.UnmarshalBody(s.Body)
 	return err
 }
