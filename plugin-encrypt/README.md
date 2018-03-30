@@ -6,6 +6,14 @@ Package encrypt encrypting the packet body.
 
 `import encrypt "github.com/henrylee2cn/tp-ext/plugin-encrypt"`
 
+Ciphertext struct:
+
+```go
+type Encrypt struct {
+	Ciphertext string `protobuf:"bytes,1,opt,name=ciphertext,proto3" json:"ciphertext,omitempty"`
+}
+```
+
 #### Test
 
 ```go
