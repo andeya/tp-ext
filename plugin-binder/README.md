@@ -56,14 +56,22 @@ import (
 	binder "github.com/henrylee2cn/tp-ext/plugin-binder"
 )
 
-type Args struct {
-	A int
-	B int `param:"<range:1:>"`
-}
+type (
+	Args struct {
+		A int
+		B int `param:"<range:1:100>"`
+		Query
+		XyZ string `param:"<query>"`
+	}
+	Query struct {
+		X string `param:"<query>"`
+	}
+)
 
 type P struct{ tp.PullCtx }
 
 func (p *P) Divide(args *Args) (int, *tp.Rerror) {
+	tp.Infof("query args x: %s, xy_z: %s", args.Query.X, args.XyZ)
 	return args.A / args.B, nil
 }
 
@@ -80,7 +88,7 @@ func TestBinder(t *testing.T) {
 		t.Fatal(err)
 	}
 	var reply int
-	rerr := sess.Pull("/p/divide", &Args{
+	rerr := sess.Pull("/p/divide?x=testquery_x&xy_z=testquery_xy_z", &Args{
 		A: 10,
 		B: 2,
 	}, &reply).Rerror()

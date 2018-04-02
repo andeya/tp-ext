@@ -172,9 +172,13 @@ func (p *Params) addFields(parentIndexPath []int, t reflect.Type, v reflect.Valu
 
 		tag, ok := field.Tag.Lookup(TAG_PARAM)
 		if !ok {
-			if canSet && field.Anonymous && field.Type.Kind() == reflect.Struct {
-				if err = p.addFields(indexPath, field.Type, value); err != nil {
-					return err
+			if canSet && field.Anonymous {
+				if field.Type.Kind() == reflect.Struct {
+					if err = p.addFields(indexPath, field.Type, value); err != nil {
+						return err
+					}
+				} else {
+					return fmt.Errorf("%s.%s anonymous field can only be struct type", t.String(), field.Name)
 				}
 			}
 			continue
