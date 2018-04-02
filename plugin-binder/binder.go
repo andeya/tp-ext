@@ -47,6 +47,7 @@ param |   err    |      no      |(e.g.`wrong password format`)| Custom error mes
 **NOTES**:
 * `param:"-"` means ignore
 * Encountered untagged exportable anonymous structure field, automatic recursive resolution
+* Parameter name is the name of the structure field converted to snake format
 
 - Field-Types
 
