@@ -86,19 +86,12 @@ var (
 
 // NewStructArgsBinder creates a plugin that binds and validates structure type parameters.
 func NewStructArgsBinder(fn ErrorFunc) *StructArgsBinder {
-	if fn == nil {
-		fn = func(handlerName, paramName, reason string) *tp.Rerror {
-			return tp.NewRerror(
-				100001,
-				"Invalid Parameter",
-				fmt.Sprintf(`{"handler": %q, "param": %q, "reason": %q}`, handlerName, paramName, reason),
-			)
-		}
-	}
-	return &StructArgsBinder{
+	s := &StructArgsBinder{
 		binders: make(map[string]*Params),
 		errFunc: fn,
 	}
+	s.SetErrorFunc(fn)
+	return s
 }
 
 var (
@@ -107,8 +100,19 @@ var (
 )
 
 // SetErrorFunc sets the binding or balidating error function.
+// Note: If fn=nil, set as default.
 func (s *StructArgsBinder) SetErrorFunc(fn ErrorFunc) {
-	s.errFunc = fn
+	if fn != nil {
+		s.errFunc = fn
+		return
+	}
+	s.errFunc = func(handlerName, paramName, reason string) *tp.Rerror {
+		return tp.NewRerror(
+			100001,
+			"Invalid Parameter",
+			fmt.Sprintf(`{"handler": %q, "param": %q, "reason": %q}`, handlerName, paramName, reason),
+		)
+	}
 }
 
 // Name returns the plugin name.
