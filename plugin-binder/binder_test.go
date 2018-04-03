@@ -13,7 +13,7 @@ type (
 		A int
 		B int `param:"<range:1:100>"`
 		Query
-		XyZ string `param:"<query>"`
+		XyZ string `param:"<query><nonzero><rerr: 100002: Parameter cannot be empty>"`
 	}
 	Query struct {
 		X string `param:"<query>"`
@@ -48,6 +48,14 @@ func TestBinder(t *testing.T) {
 		t.Fatal(rerr)
 	}
 	t.Logf("10/2=%d", reply)
+	rerr = sess.Pull("/p/divide", &Args{
+		A: 10,
+		B: 5,
+	}, &reply).Rerror()
+	if rerr == nil {
+		t.Fatal(rerr)
+	}
+	t.Logf("10/5 error:%v", rerr)
 	rerr = sess.Pull("/p/divide", &Args{
 		A: 10,
 		B: 0,

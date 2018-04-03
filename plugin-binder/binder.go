@@ -42,7 +42,7 @@ param |   len    |      no      |   (e.g.`3:6`)  | Length range [a,b] of paramet
 param |   range  |      no      |   (e.g.`0:10`)   | Numerical range [a,b] of parameter's value
 param |  nonzero |      no      |    -    | Not allowed to zero
 param |  regexp  |      no      |   (e.g.`^\w+$`)  | Regular expression validation
-param |   err    |      no      |(e.g.`wrong password format`)| Custom error message
+param |   rerr   |      no      |(e.g.`100002:wrong password format`)| Custom error code and message
 
 **NOTES**:
 * `param:"-"` means ignore
@@ -165,7 +165,7 @@ const (
 	KEY_RANGE        = "range"   // numerical range of param's value
 	KEY_NONZERO      = "nonzero" // param`s value can not be zero
 	KEY_REGEXP       = "regexp"  // verify the value of the param with a regular expression(param value can not be null)
-	KEY_ERR          = "err"     // the custom error for binding or validating
+	KEY_RERR         = "rerr"    // the custom error code and message for binding or validating
 )
 
 func newParams(handlerName string, binder *StructArgsBinder) *Params {
@@ -249,8 +249,23 @@ func (p *Params) addFields(parentIndexPath []int, t reflect.Type, v reflect.Valu
 			rawValue:    value,
 			binder:      p.binder,
 		}
-
-		fd.err = fd.tags[KEY_ERR]
+		rerrTag, ok := fd.tags[KEY_RERR]
+		if ok {
+			idx := strings.Index(rerrTag, ":")
+			if idx != -1 {
+				if codeStr := strings.TrimSpace(rerrTag[:idx]); len(codeStr) > 0 {
+					rerrCode, err := strconv.Atoi(codeStr)
+					if err == nil {
+						fd.rerrCode = int32(rerrCode)
+					} else {
+						return fmt.Errorf("%s.%s invalid `rerr` tag (correct example: `<rerr: 100001: Invalid Parameter>`)", t.String(), field.Name)
+					}
+				}
+				fd.rerrMsg = strings.TrimSpace(rerrTag[idx+1:])
+			} else {
+				return fmt.Errorf("%s.%s invalid `rerr` tag (correct example: `<rerr: 100001: Invalid Parameter>`)", t.String(), field.Name)
+			}
+		}
 
 		fd.name, fd.isQuery = parsedTags[KEY_QUERY]
 		if fd.name == "" {
@@ -297,7 +312,7 @@ func (p *Params) bindAndValidate(structValue reflect.Value, queryValues url.Valu
 			paramValues, ok := queryValues[param.name]
 			if ok {
 				if err = convertAssign(value, paramValues); err != nil {
-					return p.binder.errFunc(param.handlerName, param.name, param.reason(err.Error()))
+					return param.fixRerror(p.binder.errFunc(param.handlerName, param.name, err.Error()))
 				}
 			}
 		}
@@ -391,7 +406,8 @@ type Param struct {
 	verifyFuncs []func(reflect.Value) error
 	rawTag      reflect.StructTag // the raw tag
 	rawValue    reflect.Value     // the raw tag value
-	err         string            // the custom error for binding or validating
+	rerrCode    int32             // the custom error code for binding or validating
+	rerrMsg     string            // the custom error message for binding or validating
 	binder      *StructArgsBinder
 }
 
@@ -421,13 +437,13 @@ func (param *Param) Description() string {
 func (param *Param) validate(value reflect.Value) (rerr *tp.Rerror) {
 	defer func() {
 		if r := recover(); r != nil {
-			rerr = param.binder.errFunc(param.handlerName, param.name, param.reason(fmt.Sprint(r)))
+			rerr = param.fixRerror(param.binder.errFunc(param.handlerName, param.name, fmt.Sprint(r)))
 		}
 	}()
 	var err error
 	for _, fn := range param.verifyFuncs {
 		if err = fn(value); err != nil {
-			return param.binder.errFunc(param.handlerName, param.name, param.reason(err.Error()))
+			return param.fixRerror(param.binder.errFunc(param.handlerName, param.name, err.Error()))
 		}
 	}
 	return nil
@@ -604,11 +620,14 @@ func validateRegexp(isStrings bool, reg string) (func(value reflect.Value) error
 	}
 }
 
-func (param *Param) reason(reason string) string {
-	if param.err != "" {
-		return param.err
+func (param *Param) fixRerror(rerr *tp.Rerror) *tp.Rerror {
+	if param.rerrMsg != "" {
+		rerr.SetMessage(param.rerrMsg)
 	}
-	return reason
+	if param.rerrCode != 0 {
+		rerr.Code = param.rerrCode
+	}
+	return rerr
 }
 
 func convertAssign(dest reflect.Value, src []string) (err error) {

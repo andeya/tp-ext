@@ -16,7 +16,7 @@ param |   len    |      no      |   (e.g.`3:6`)  | Length range [a,b] of paramet
 param |   range  |      no      |   (e.g.`0:10`)   | Numerical range [a,b] of parameter's value
 param |  nonzero |      no      |    -    | Not allowed to zero
 param |  regexp  |      no      |   (e.g.`^\w+$`)  | Regular expression validation
-param |   err    |      no      |(e.g.`wrong password format`)| Custom error message
+param |   rerr   |      no      |(e.g.`100002:wrong password format`)| Custom error code and message
 
 NOTES:
 * `param:"-"` means ignore
@@ -62,7 +62,7 @@ type (
 		A int
 		B int `param:"<range:1:100>"`
 		Query
-		XyZ string `param:"<query>"`
+		XyZ string `param:"<query><nonzero><rerr: 100002: Parameter cannot be empty>"`
 	}
 	Query struct {
 		X string `param:"<query>"`
@@ -97,6 +97,14 @@ func TestBinder(t *testing.T) {
 		t.Fatal(rerr)
 	}
 	t.Logf("10/2=%d", reply)
+	rerr = sess.Pull("/p/divide", &Args{
+		A: 10,
+		B: 5,
+	}, &reply).Rerror()
+	if rerr == nil {
+		t.Fatal(rerr)
+	}
+	t.Logf("10/5 error:%v", rerr)
 	rerr = sess.Pull("/p/divide", &Args{
 		A: 10,
 		B: 0,
