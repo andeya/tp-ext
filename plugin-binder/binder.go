@@ -69,13 +69,15 @@ uint64  |  []uint64  |
 float32 |  []float32 |
 float64 |  []float64 |
 */
-
-// StructArgsBinder a plugin that binds and validates structure type parameters.
-type StructArgsBinder struct {
-	binders        map[string]*Params
-	bindErrCode    int32
-	bindErrMessage string
-}
+type (
+	// StructArgsBinder a plugin that binds and validates structure type parameters.
+	StructArgsBinder struct {
+		binders map[string]*Params
+		errFunc ErrorFunc
+	}
+	// ErrorFunc creates an relational error.
+	ErrorFunc func(handlerName, paramName, reason string) *tp.Rerror
+)
 
 var (
 	_ tp.PostRegPlugin          = new(StructArgsBinder)
@@ -83,11 +85,19 @@ var (
 )
 
 // NewStructArgsBinder creates a plugin that binds and validates structure type parameters.
-func NewStructArgsBinder(bindErrCode int32, bindErrMessage string) *StructArgsBinder {
+func NewStructArgsBinder(fn ErrorFunc) *StructArgsBinder {
+	if fn == nil {
+		fn = func(handlerName, paramName, reason string) *tp.Rerror {
+			return tp.NewRerror(
+				100001,
+				"Invalid Parameter",
+				fmt.Sprintf(`{"handler": %q, "param": %q, "reason": %q}`, handlerName, paramName, reason),
+			)
+		}
+	}
 	return &StructArgsBinder{
-		binders:        make(map[string]*Params),
-		bindErrCode:    bindErrCode,
-		bindErrMessage: bindErrMessage,
+		binders: make(map[string]*Params),
+		errFunc: fn,
 	}
 }
 
@@ -95,6 +105,11 @@ var (
 	_ tp.PostRegPlugin          = new(StructArgsBinder)
 	_ tp.PostReadPullBodyPlugin = new(StructArgsBinder)
 )
+
+// SetErrorFunc sets the binding or balidating error function.
+func (s *StructArgsBinder) SetErrorFunc(fn ErrorFunc) {
+	s.errFunc = fn
+}
 
 // Name returns the plugin name.
 func (*StructArgsBinder) Name() string {
@@ -106,7 +121,7 @@ func (s *StructArgsBinder) PostReg(h *tp.Handler) error {
 	if h.ArgElemType().Kind() != reflect.Struct {
 		return nil
 	}
-	params := newParams(h.Name())
+	params := newParams(h.Name(), s)
 	err := params.addFields([]int{}, h.ArgElemType(), h.NewArgValue().Elem())
 	if err != nil {
 		tp.Fatalf("%v", err)
@@ -122,9 +137,9 @@ func (s *StructArgsBinder) PostReadPullBody(ctx tp.ReadCtx) *tp.Rerror {
 		return nil
 	}
 	bodyValue := reflect.ValueOf(ctx.Input().Body())
-	err := params.bindAndValidate(bodyValue, ctx.Query())
-	if err != nil {
-		return tp.NewRerror(s.bindErrCode, s.bindErrMessage, err.Error())
+	rerr := params.bindAndValidate(bodyValue, ctx.Query())
+	if rerr != nil {
+		return rerr
 	}
 	return nil
 }
@@ -133,6 +148,7 @@ func (s *StructArgsBinder) PostReadPullBody(ctx tp.ReadCtx) *tp.Rerror {
 type Params struct {
 	handlerName string
 	params      []*Param
+	binder      *StructArgsBinder
 }
 
 // struct binder parameters'tag
@@ -148,10 +164,11 @@ const (
 	KEY_ERR          = "err"     // the custom error for binding or validating
 )
 
-func newParams(handlerName string) *Params {
+func newParams(handlerName string, binder *StructArgsBinder) *Params {
 	return &Params{
 		handlerName: handlerName,
 		params:      make([]*Param, 0),
+		binder:      binder,
 	}
 }
 
@@ -226,6 +243,7 @@ func (p *Params) addFields(parentIndexPath []int, t reflect.Type, v reflect.Valu
 			tags:        parsedTags,
 			rawTag:      field.Tag,
 			rawValue:    value,
+			binder:      p.binder,
 		}
 
 		fd.err = fd.tags[KEY_ERR]
@@ -259,26 +277,28 @@ func (p *Params) fieldsForBinding(structElem reflect.Value) []reflect.Value {
 	return fields
 }
 
-func (p *Params) bindAndValidate(structValue reflect.Value, queryValues url.Values) (err error) {
-	fields := p.fieldsForBinding(reflect.Indirect(structValue))
+func (p *Params) bindAndValidate(structValue reflect.Value, queryValues url.Values) (rerr *tp.Rerror) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = errors.New("bindAndValidate: " + p.handlerName + " : " + fmt.Sprint(r))
+			rerr = p.binder.errFunc(p.handlerName, "", fmt.Sprint(r))
 		}
 	}()
-
+	var (
+		err    error
+		fields = p.fieldsForBinding(reflect.Indirect(structValue))
+	)
 	for i, param := range p.params {
 		value := fields[i]
 		if param.isQuery {
 			paramValues, ok := queryValues[param.name]
 			if ok {
 				if err = convertAssign(value, paramValues); err != nil {
-					return param.myError(err.Error())
+					return p.binder.errFunc(param.handlerName, param.name, param.reason(err.Error()))
 				}
 			}
 		}
-		if err = param.validate(value); err != nil {
-			return err
+		if rerr = param.validate(value); rerr != nil {
+			return rerr
 		}
 	}
 	return
@@ -368,6 +388,7 @@ type Param struct {
 	rawTag      reflect.StructTag // the raw tag
 	rawValue    reflect.Value     // the raw tag value
 	err         string            // the custom error for binding or validating
+	binder      *StructArgsBinder
 }
 
 const (
@@ -393,18 +414,16 @@ func (param *Param) Description() string {
 
 // validate tests if the param conforms to it's validation constraints specified
 // int the KEY_REGEXP struct tag
-func (param *Param) validate(value reflect.Value) (err error) {
+func (param *Param) validate(value reflect.Value) (rerr *tp.Rerror) {
 	defer func() {
-		p := recover()
-		if p != nil {
-			err = param.myError(fmt.Sprint(p))
-		} else if err != nil {
-			err = param.myError(err.Error())
+		if r := recover(); r != nil {
+			rerr = param.binder.errFunc(param.handlerName, param.name, param.reason(fmt.Sprint(r)))
 		}
 	}()
+	var err error
 	for _, fn := range param.verifyFuncs {
 		if err = fn(value); err != nil {
-			return err
+			return param.binder.errFunc(param.handlerName, param.name, param.reason(err.Error()))
 		}
 	}
 	return nil
@@ -581,23 +600,11 @@ func validateRegexp(isStrings bool, reg string) (func(value reflect.Value) error
 	}
 }
 
-// BindOrValidateErrorFunc creates an relational error.
-type BindOrValidateErrorFunc func(handler, param, reason string) error
-
-var bindOrValidateErrorFunc = func(handler, param, reason string) error {
-	return fmt.Errorf(`{"handler": %q, "param": %q, "reason": %q}`, handler, param, reason)
-}
-
-// SetBindOrValidateErrorFunc
-func SetBindOrValidateErrorFunc(fn BindOrValidateErrorFunc) {
-	bindOrValidateErrorFunc = fn
-}
-
-func (param *Param) myError(reason string) error {
+func (param *Param) reason(reason string) string {
 	if param.err != "" {
-		reason = param.err
+		return param.err
 	}
-	return bindOrValidateErrorFunc(param.handlerName, param.name, reason)
+	return reason
 }
 
 func convertAssign(dest reflect.Value, src []string) (err error) {
