@@ -3,7 +3,7 @@ syntax = "proto3";
 package pb;
 
 message format {
-    uint64 seq        = 1;
+    string seq        = 1;
     int32  ptype      = 2;
     string uri        = 3;
     bytes  meta       = 4;

@@ -6,6 +6,7 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"io"
+	"strconv"
 	"sync"
 
 	tp "github.com/henrylee2cn/teleport"
@@ -53,9 +54,12 @@ func (t *tpV2Proto) Version() (byte, string) {
 func (t *tpV2Proto) Pack(p *socket.Packet) error {
 	bb := utils.AcquireByteBuffer()
 	defer utils.ReleaseByteBuffer(bb)
-
+	seq, err := strconv.ParseUint(p.Seq(), 10, 64)
+	if err != nil {
+		return err
+	}
 	header := &pb.Header{
-		Seq:  p.Seq(),
+		Seq:  seq,
 		Type: int32(p.Ptype()),
 		Uri:  p.Uri(),
 	}
@@ -70,7 +74,7 @@ func (t *tpV2Proto) Pack(p *socket.Packet) error {
 	}
 
 	// write header
-	err := t.writeHeader(bb, header)
+	err = t.writeHeader(bb, header)
 	if err != nil {
 		return err
 	}
@@ -197,7 +201,7 @@ func (t *tpV2Proto) readHeader(bb *utils.ByteBuffer, p *socket.Packet) error {
 	if err != nil {
 		return err
 	}
-	p.SetSeq(header.Seq)
+	p.SetSeq(strconv.FormatUint(header.Seq, 10))
 	p.SetPtype(byte(header.Type))
 	p.SetUri(header.Uri)
 

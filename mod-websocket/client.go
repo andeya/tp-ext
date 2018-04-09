@@ -28,7 +28,7 @@ import (
 )
 
 // NewDialPlugin creates a websocket plugin for client.
-func NewDialPlugin(pattern string) tp.PostDialPlugin {
+func NewDialPlugin(pattern string) tp.Plugin {
 	pattern = path.Join("/", strings.TrimRight(pattern, "/"))
 	if pattern == "/" {
 		pattern = ""

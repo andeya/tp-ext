@@ -66,7 +66,7 @@ func (j *jsonproto) Version() (byte, string) {
 	return j.id, j.name
 }
 
-const format = `{"seq":%d,"ptype":%d,"uri":%q,"meta":%q,"body_codec":%d,"body":"%s"}`
+const format = `{"seq":%q,"ptype":%d,"uri":%q,"meta":%q,"body_codec":%d,"body":"%s"}`
 
 // Pack writes the Packet into the connection.
 // Note: Make sure to write only once or there will be package contamination!
@@ -151,7 +151,7 @@ func (j *jsonproto) Unpack(p *socket.Packet) error {
 	s := string(bb.B)
 
 	// read other
-	p.SetSeq(uint64(gjson.Get(s, "seq").Int()))
+	p.SetSeq(gjson.Get(s, "seq").String())
 	p.SetPtype(byte(gjson.Get(s, "ptype").Int()))
 	p.SetUri(gjson.Get(s, "uri").String())
 	meta := gjson.Get(s, "meta").String()
