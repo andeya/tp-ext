@@ -21,7 +21,7 @@ package|import|description
 [binder](https://github.com/henrylee2cn/tp-ext/blob/master/plugin-binder)|`import binder "github.com/henrylee2cn/tp-ext/plugin-binder"`|Parameter Binding Verification for Struct Handler
 [heartbeat](https://github.com/henrylee2cn/tp-ext/blob/master/plugin-heartbeat)|`import heartbeat "github.com/henrylee2cn/tp-ext/plugin-heartbeat"`|A generic timing heartbeat plugin
 [ignoreCase](https://github.com/henrylee2cn/tp-ext/blob/master/plugin-ignoreCase)|`import ignoreCase "github.com/henrylee2cn/tp-ext/plugin-ignoreCase"`|Dynamically ignoring the case of path
-[encrypt](https://github.com/henrylee2cn/tp-ext/blob/master/plugin-encrypt)|`import encrypt "github.com/henrylee2cn/tp-ext/plugin-encrypt"`|Encrypting the packet body
+[secure](https://github.com/henrylee2cn/tp-ext/blob/master/plugin-secure)|`import secure "github.com/henrylee2cn/tp-ext/plugin-secure"`|Encrypting/decrypting the packet body
 
 ## Protocol
 
