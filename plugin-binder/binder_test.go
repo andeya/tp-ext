@@ -13,7 +13,8 @@ type (
 		A int
 		B int `param:"<range:1:100>"`
 		Query
-		XyZ string `param:"<query><nonzero><rerr: 100002: Parameter cannot be empty>"`
+		XyZ  string  `param:"<query><nonzero><rerr: 100002: Parameter cannot be empty>"`
+		Swap float32 `param:"<swap><nonzero>"`
 	}
 	Query struct {
 		X string `param:"<query>"`
@@ -23,14 +24,27 @@ type (
 type P struct{ tp.PullCtx }
 
 func (p *P) Divide(args *Args) (int, *tp.Rerror) {
-	tp.Infof("query args x: %s, xy_z: %s", args.Query.X, args.XyZ)
+	tp.Infof("query args x: %s, xy_z: %s, swap: %v", args.Query.X, args.XyZ, args.Swap)
 	return args.A / args.B, nil
+}
+
+type SwapPlugin struct{}
+
+func (s *SwapPlugin) Name() string {
+	return "swap_plugin"
+}
+func (s *SwapPlugin) PostReadPullBody(ctx tp.ReadCtx) *tp.Rerror {
+	ctx.Swap().Store("swap", 123)
+	return nil
 }
 
 func TestBinder(t *testing.T) {
 	bplugin := binder.NewStructArgsBinder(nil)
-	srv := tp.NewPeer(tp.PeerConfig{ListenAddress: ":9090"})
-	srv.RoutePull(new(P), bplugin)
+	srv := tp.NewPeer(
+		tp.PeerConfig{ListenAddress: ":9090"},
+	)
+	srv.PluginContainer().AppendRight(bplugin)
+	srv.RoutePull(new(P), new(SwapPlugin))
 	go srv.ListenAndServe()
 	time.Sleep(time.Second)
 

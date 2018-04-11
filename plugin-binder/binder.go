@@ -141,7 +141,7 @@ func (s *StructArgsBinder) PostReadPullBody(ctx tp.ReadCtx) *tp.Rerror {
 		return nil
 	}
 	bodyValue := reflect.ValueOf(ctx.Input().Body())
-	rerr := params.bindAndValidate(bodyValue, ctx.Query())
+	rerr := params.bindAndValidate(bodyValue, ctx.Query(), ctx.Swap())
 	if rerr != nil {
 		return rerr
 	}
@@ -160,6 +160,7 @@ const (
 	TAG_PARAM        = "param"   // request param tag name
 	TAG_IGNORE_PARAM = "-"       // ignore request param tag value
 	KEY_QUERY        = "query"   // query param(optional), value means parameter(optional)
+	KEY_SWAP         = "swap"    // swap param from the context swap(ctx.Swap()) (optional), value means parameter(optional)
 	KEY_DESC         = "desc"    // request param description
 	KEY_LEN          = "len"     // length range of param's value
 	KEY_RANGE        = "range"   // numerical range of param's value
@@ -267,7 +268,11 @@ func (p *Params) addFields(parentIndexPath []int, t reflect.Type, v reflect.Valu
 			}
 		}
 
-		fd.name, fd.isQuery = parsedTags[KEY_QUERY]
+		if fd.name, ok = parsedTags[KEY_QUERY]; ok {
+			fd.position = KEY_QUERY
+		} else if fd.name, ok = parsedTags[KEY_SWAP]; ok {
+			fd.position = KEY_SWAP
+		}
 		if fd.name == "" {
 			fd.name = goutil.SnakeString(field.Name)
 		}
@@ -296,7 +301,7 @@ func (p *Params) fieldsForBinding(structElem reflect.Value) []reflect.Value {
 	return fields
 }
 
-func (p *Params) bindAndValidate(structValue reflect.Value, queryValues url.Values) (rerr *tp.Rerror) {
+func (p *Params) bindAndValidate(structValue reflect.Value, queryValues url.Values, swap goutil.Map) (rerr *tp.Rerror) {
 	defer func() {
 		if r := recover(); r != nil {
 			rerr = p.binder.errFunc(p.handlerName, "", fmt.Sprint(r))
@@ -308,12 +313,41 @@ func (p *Params) bindAndValidate(structValue reflect.Value, queryValues url.Valu
 	)
 	for i, param := range p.params {
 		value := fields[i]
-		if param.isQuery {
+		// bind query or swap param
+		switch param.position {
+		case KEY_QUERY:
 			paramValues, ok := queryValues[param.name]
 			if ok {
 				if err = convertAssign(value, paramValues); err != nil {
 					return param.fixRerror(p.binder.errFunc(param.handlerName, param.name, err.Error()))
 				}
+			}
+		case KEY_SWAP:
+			paramValue, ok := swap.Load(param.name)
+			if ok {
+				value = reflect.Indirect(value)
+				canSet := value.CanSet()
+				var srcValue reflect.Value
+				if canSet {
+					srcValue = reflect.Indirect(reflect.ValueOf(paramValue))
+					destType := value.Type()
+					srcType := srcValue.Type()
+					canSet = srcType.AssignableTo(destType)
+					if !canSet {
+						if srcType.ConvertibleTo(destType) {
+							srcValue = srcValue.Convert(destType)
+							canSet = srcValue.Type().AssignableTo(destType)
+						}
+					}
+				}
+				if !canSet {
+					return param.fixRerror(p.binder.errFunc(
+						param.handlerName,
+						param.name,
+						value.Type().Name()+" can not be setted"),
+					)
+				}
+				value.Set(srcValue)
 			}
 		}
 		if rerr = param.validate(value); rerr != nil {
@@ -401,7 +435,7 @@ type Param struct {
 	handlerName string // handler name
 	name        string // param name
 	indexPath   []int
-	isQuery     bool              // is query param or not
+	position    string            // param position
 	tags        map[string]string // struct tags for this param
 	verifyFuncs []func(reflect.Value) error
 	rawTag      reflect.StructTag // the raw tag
@@ -515,7 +549,7 @@ func validateNonZero() (func(value reflect.Value) error, error) {
 	return func(value reflect.Value) error {
 		obj := value.Interface()
 		if obj == reflect.Zero(value.Type()).Interface() {
-			return errors.New("not set")
+			return errors.New("zero value")
 		}
 		return nil
 	}, nil
