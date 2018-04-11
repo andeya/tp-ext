@@ -65,8 +65,8 @@ type (
 		A int
 		B int `param:"<range:1:100>"`
 		Query
-		XyZ  string  `param:"<query><nonzero><rerr: 100002: Parameter cannot be empty>"`
-		Swap float32 `param:"<swap><nonzero>"`
+		XyZ       string  `param:"<query><nonzero><rerr: 100002: Parameter cannot be empty>"`
+		SwapValue float32 `param:"<swap><nonzero>"`
 	}
 	Query struct {
 		X string `param:"<query>"`
@@ -76,7 +76,7 @@ type (
 type P struct{ tp.PullCtx }
 
 func (p *P) Divide(args *Args) (int, *tp.Rerror) {
-	tp.Infof("query args x: %s, xy_z: %s, swap: %v", args.Query.X, args.XyZ, args.Swap)
+	tp.Infof("query args x: %s, xy_z: %s, swap_value: %v", args.Query.X, args.XyZ, args.SwapValue)
 	return args.A / args.B, nil
 }
 
@@ -86,7 +86,7 @@ func (s *SwapPlugin) Name() string {
 	return "swap_plugin"
 }
 func (s *SwapPlugin) PostReadPullBody(ctx tp.ReadCtx) *tp.Rerror {
-	ctx.Swap().Store("swap", 123)
+	ctx.Swap().Store("swap_value", 123)
 	return nil
 }
 
