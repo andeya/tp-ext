@@ -11,7 +11,8 @@ import (
 
 // md5Hash compression filter
 type md5Hash struct {
-	id byte
+	id   byte
+	name string
 }
 
 const md5Length = 16
@@ -19,15 +20,21 @@ const md5Length = 16
 var errDataCheck = errors.New("check failed")
 
 // New returns a integrity check transfer filter
-func Reg(id byte) {
+func Reg(id byte, name string) {
 	xfer.Reg(&md5Hash{
-		id: id,
+		id:   id,
+		name: name,
 	})
 }
 
 // Id returns transfer filter id.
 func (m *md5Hash) Id() byte {
 	return m.id
+}
+
+// Id returns transfer filter name.
+func (m *md5Hash) Name() string {
+	return m.name
 }
 
 func (m *md5Hash) OnPack(src []byte) ([]byte, error) {

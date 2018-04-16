@@ -11,7 +11,7 @@ import (
 
 func TestSeparate(t *testing.T) {
 	// Register filter(custom)
-	md5Hash.Reg('m')
+	md5Hash.Reg('m', "md5")
 	md5Check, _ := xfer.Get('m')
 	input := []byte("md5")
 	b, err := md5Check.OnPack(input)
@@ -34,7 +34,7 @@ func TestSeparate(t *testing.T) {
 
 func TestCombined(t *testing.T) {
 	// Register filter(custom)
-	md5Hash.Reg('m')
+	md5Hash.Reg('m', "md5")
 	// Server
 	srv := tp.NewPeer(tp.PeerConfig{ListenAddress: ":9090"})
 	srv.RoutePull(new(Home))
