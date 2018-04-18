@@ -30,12 +30,15 @@ func NewSecurePlugin(rerrCode int32, cipherkey string) tp.Plugin {
 	if _, err := aes.NewCipher(b); err != nil {
 		tp.Fatalf("NewSecurePlugin: %v", err)
 	}
+	version := goutil.Md5([]byte(cipherkey))
 	return &securePlugin{
 		encryptPlugin: &encryptPlugin{
+			version:   version,
 			cipherkey: b,
 			rerrCode:  rerrCode,
 		},
 		decryptPlugin: &decryptPlugin{
+			version:   version,
 			cipherkey: b,
 			rerrCode:  rerrCode,
 		},
@@ -50,7 +53,9 @@ func NewEncryptPlugin(rerrCode int32, cipherkey string) tp.Plugin {
 	if _, err := aes.NewCipher(b); err != nil {
 		tp.Fatalf("NewEncryptPlugin: %v", err)
 	}
+	version := goutil.Md5([]byte(cipherkey))
 	return &encryptPlugin{
+		version:   version,
 		cipherkey: b,
 		rerrCode:  rerrCode,
 	}
@@ -64,7 +69,9 @@ func NewDecryptPlugin(rerrCode int32, cipherkey string) tp.Plugin {
 	if _, err := aes.NewCipher(b); err != nil {
 		tp.Fatalf("NewDecryptPlugin: %v", err)
 	}
+	version := goutil.Md5([]byte(cipherkey))
 	return &decryptPlugin{
+		version:   version,
 		cipherkey: b,
 		rerrCode:  rerrCode,
 	}
@@ -88,6 +95,7 @@ type (
 		*decryptPlugin
 	}
 	encryptPlugin struct {
+		version   string
 		cipherkey []byte
 		rerrCode  int32
 	}
@@ -112,7 +120,10 @@ func (e *encryptPlugin) PreWritePull(ctx tp.WriteCtx) *tp.Rerror {
 		return tp.NewRerror(e.rerrCode, "marshal raw body error", err.Error())
 	}
 	ciphertext := goutil.AESEncrypt(e.cipherkey, bodyBytes)
-	ctx.Output().SetBody(&Encrypt{goutil.BytesToString(ciphertext)})
+	ctx.Output().SetBody(&Encrypt{
+		Version:    e.version,
+		Ciphertext: goutil.BytesToString(ciphertext),
+	})
 	return nil
 }
 

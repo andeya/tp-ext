@@ -3,13 +3,13 @@
 // DO NOT EDIT!
 
 /*
-Package secure is a generated protocol buffer package.
+	Package secure is a generated protocol buffer package.
 
-It is generated from these files:
-	secure.proto
+	It is generated from these files:
+		secure.proto
 
-It has these top-level messages:
-	Encrypt
+	It has these top-level messages:
+		Encrypt
 */
 package secure
 
@@ -31,13 +31,21 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 
 type Encrypt struct {
-	Ciphertext string `protobuf:"bytes,1,opt,name=ciphertext,proto3" json:"ciphertext,omitempty"`
+	Version    string `protobuf:"bytes,1,opt,name=version,proto3" json:"version,omitempty"`
+	Ciphertext string `protobuf:"bytes,2,opt,name=ciphertext,proto3" json:"ciphertext,omitempty"`
 }
 
 func (m *Encrypt) Reset()                    { *m = Encrypt{} }
 func (m *Encrypt) String() string            { return proto.CompactTextString(m) }
 func (*Encrypt) ProtoMessage()               {}
 func (*Encrypt) Descriptor() ([]byte, []int) { return fileDescriptorSecure, []int{0} }
+
+func (m *Encrypt) GetVersion() string {
+	if m != nil {
+		return m.Version
+	}
+	return ""
+}
 
 func (m *Encrypt) GetCiphertext() string {
 	if m != nil {
@@ -64,8 +72,14 @@ func (m *Encrypt) MarshalTo(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.Ciphertext) > 0 {
+	if len(m.Version) > 0 {
 		dAtA[i] = 0xa
+		i++
+		i = encodeVarintSecure(dAtA, i, uint64(len(m.Version)))
+		i += copy(dAtA[i:], m.Version)
+	}
+	if len(m.Ciphertext) > 0 {
+		dAtA[i] = 0x12
 		i++
 		i = encodeVarintSecure(dAtA, i, uint64(len(m.Ciphertext)))
 		i += copy(dAtA[i:], m.Ciphertext)
@@ -103,6 +117,10 @@ func encodeVarintSecure(dAtA []byte, offset int, v uint64) int {
 func (m *Encrypt) Size() (n int) {
 	var l int
 	_ = l
+	l = len(m.Version)
+	if l > 0 {
+		n += 1 + l + sovSecure(uint64(l))
+	}
 	l = len(m.Ciphertext)
 	if l > 0 {
 		n += 1 + l + sovSecure(uint64(l))
@@ -153,6 +171,35 @@ func (m *Encrypt) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Version", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowSecure
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthSecure
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Version = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Ciphertext", wireType)
 			}
@@ -310,12 +357,13 @@ var (
 func init() { proto.RegisterFile("secure.proto", fileDescriptorSecure) }
 
 var fileDescriptorSecure = []byte{
-	// 101 bytes of a gzipped FileDescriptorProto
+	// 118 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0x29, 0x4e, 0x4d, 0x2e,
 	0x2d, 0x4a, 0xd5, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x62, 0x4f, 0xcd, 0x4b, 0x2e, 0xaa, 0x2c,
-	0x28, 0x51, 0xd2, 0xe4, 0x62, 0x77, 0x85, 0x30, 0x85, 0xe4, 0xb8, 0xb8, 0x92, 0x33, 0x0b, 0x32,
-	0x52, 0x8b, 0x4a, 0x52, 0x2b, 0x4a, 0x24, 0x18, 0x15, 0x18, 0x35, 0x38, 0x83, 0x90, 0x44, 0x9c,
-	0x04, 0x4e, 0x3c, 0x92, 0x63, 0xbc, 0xf0, 0x48, 0x8e, 0xf1, 0xc1, 0x23, 0x39, 0xc6, 0x09, 0x8f,
-	0xe5, 0x18, 0x92, 0xd8, 0xc0, 0x86, 0x19, 0x03, 0x02, 0x00, 0x00, 0xff, 0xff, 0x83, 0x9e, 0xec,
-	0x6a, 0x5c, 0x00, 0x00, 0x00,
+	0x28, 0x51, 0x72, 0xe6, 0x62, 0x77, 0x85, 0x30, 0x85, 0x24, 0xb8, 0xd8, 0xcb, 0x52, 0x8b, 0x8a,
+	0x33, 0xf3, 0xf3, 0x24, 0x18, 0x15, 0x18, 0x35, 0x38, 0x83, 0x60, 0x5c, 0x21, 0x39, 0x2e, 0xae,
+	0xe4, 0xcc, 0x82, 0x8c, 0xd4, 0xa2, 0x92, 0xd4, 0x8a, 0x12, 0x09, 0x26, 0xb0, 0x24, 0x92, 0x88,
+	0x93, 0xc0, 0x89, 0x47, 0x72, 0x8c, 0x17, 0x1e, 0xc9, 0x31, 0x3e, 0x78, 0x24, 0xc7, 0x38, 0xe1,
+	0xb1, 0x1c, 0x43, 0x12, 0x1b, 0xd8, 0x1a, 0x63, 0x40, 0x00, 0x00, 0x00, 0xff, 0xff, 0x85, 0xfd,
+	0xe3, 0x5f, 0x76, 0x00, 0x00, 0x00,
 }

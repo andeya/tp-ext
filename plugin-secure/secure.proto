@@ -1,7 +1,8 @@
 syntax = "proto3";
 
-package encrypt;
+package secure;
 
 message Encrypt {
-	string ciphertext = 1;
+	string version    = 1;
+	string ciphertext = 2;
 }
