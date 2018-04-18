@@ -8,7 +8,7 @@ import (
 	heartbeat "github.com/henrylee2cn/tp-ext/plugin-heartbeat"
 )
 
-func TestHeartbeat11(t *testing.T) {
+func TestHeartbeatPull1(t *testing.T) {
 	srv := tp.NewPeer(
 		tp.PeerConfig{ListenAddress: ":9090"},
 		heartbeat.NewPong(),
@@ -18,13 +18,13 @@ func TestHeartbeat11(t *testing.T) {
 
 	cli := tp.NewPeer(
 		tp.PeerConfig{},
-		heartbeat.NewPing(3),
+		heartbeat.NewPing(3, true),
 	)
 	cli.Dial(":9090")
 	time.Sleep(time.Second * 10)
 }
 
-func TestHeartbeat12(t *testing.T) {
+func TestHeartbeatPull2(t *testing.T) {
 	srv := tp.NewPeer(
 		tp.PeerConfig{ListenAddress: ":9090"},
 		heartbeat.NewPong(),
@@ -34,7 +34,7 @@ func TestHeartbeat12(t *testing.T) {
 
 	cli := tp.NewPeer(
 		tp.PeerConfig{},
-		heartbeat.NewPing(3),
+		heartbeat.NewPing(3, true),
 	)
 	sess, _ := cli.Dial(":9090")
 	for i := 0; i < 8; i++ {
@@ -44,10 +44,10 @@ func TestHeartbeat12(t *testing.T) {
 	time.Sleep(time.Second * 5)
 }
 
-func TestHeartbeat21(t *testing.T) {
+func TestHeartbeatPush1(t *testing.T) {
 	srv := tp.NewPeer(
 		tp.PeerConfig{ListenAddress: ":9090"},
-		heartbeat.NewPing(3),
+		heartbeat.NewPing(3, false),
 	)
 	go srv.ListenAndServe()
 	time.Sleep(time.Second)
@@ -60,10 +60,10 @@ func TestHeartbeat21(t *testing.T) {
 	time.Sleep(time.Second * 10)
 }
 
-func TestHeartbeat22(t *testing.T) {
+func TestHeartbeatPush2(t *testing.T) {
 	srv := tp.NewPeer(
 		tp.PeerConfig{ListenAddress: ":9090"},
-		heartbeat.NewPing(3),
+		heartbeat.NewPing(3, false),
 	)
 	go srv.ListenAndServe()
 	time.Sleep(time.Second)
