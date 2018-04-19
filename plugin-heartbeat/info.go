@@ -22,9 +22,11 @@ import (
 	"github.com/henrylee2cn/goutil/coarsetime"
 )
 
+type swapKey byte
+
 const (
-	heartbeatKey  = "_hb"
-	minRateSecond = 3
+	heartbeatSwapKey swapKey = 0
+	minRateSecond            = 3
 )
 
 // heartbeatInfo heartbeat info
@@ -60,7 +62,7 @@ func (h *heartbeatInfo) getLast() time.Time {
 }
 
 func initHeartbeatInfo(m goutil.Map, rate time.Duration) {
-	m.Store(heartbeatKey, &heartbeatInfo{
+	m.Store(heartbeatSwapKey, &heartbeatInfo{
 		rate: rate,
 		last: coarsetime.CeilingTimeNow(),
 	})
@@ -68,7 +70,7 @@ func initHeartbeatInfo(m goutil.Map, rate time.Duration) {
 
 // getHeartbeatInfo gets heartbeat info from session.
 func getHeartbeatInfo(m goutil.Map) (*heartbeatInfo, bool) {
-	_info, ok := m.Load(heartbeatKey)
+	_info, ok := m.Load(heartbeatSwapKey)
 	if !ok {
 		return nil, false
 	}

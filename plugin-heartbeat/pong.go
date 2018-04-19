@@ -120,12 +120,6 @@ func (h *heartPong) update(ctx tp.ReadCtx) {
 	updateHeartbeatInfo(sess.Swap(), -1)
 }
 
-const (
-	// HeartbeatUri heartbeat service URI
-	HeartbeatUri      = "/heartbeat"
-	heartbeatQueryKey = heartbeatKey
-)
-
 type pongPull struct {
 	tp.PullCtx
 }

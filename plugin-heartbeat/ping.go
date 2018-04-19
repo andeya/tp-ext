@@ -25,6 +25,12 @@ import (
 	tp "github.com/henrylee2cn/teleport"
 )
 
+const (
+	// HeartbeatUri heartbeat service URI
+	HeartbeatUri      = "/heartbeat"
+	heartbeatQueryKey = "hb_"
+)
+
 // NewPing returns a heartbeat(PULL or PUSH) sender plugin.
 func NewPing(rateSecond int, usePull bool) Ping {
 	p := new(heartPing)
