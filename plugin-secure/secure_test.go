@@ -20,8 +20,8 @@ type Result struct {
 type math struct{ tp.PullCtx }
 
 func (m *math) Add(args *Args) (*Result, *tp.Rerror) {
-	// all encrypted
-	// secure.UseSecure(m.Output())
+	// enforces the body of the encrypted reply packet.
+	// secure.EnforceSecure(m.Output())
 
 	return &Result{C: args.A + args.B}, nil
 }
@@ -55,6 +55,7 @@ func TestSecurePlugin(t *testing.T) {
 		&Args{A: 10, B: 2},
 		&reply,
 		secure.WithSecureMeta(),
+		// secure.WithAcceptSecureMeta(false),
 	).Rerror()
 	if rerr != nil {
 		t.Fatal(rerr)
@@ -73,7 +74,7 @@ func TestAcceptSecurePlugin(t *testing.T) {
 		"/math/add",
 		&Args{A: 20, B: 4},
 		&reply,
-		secure.WithAcceptSecureMeta(),
+		secure.WithAcceptSecureMeta(false),
 	).Rerror()
 	if rerr != nil {
 		t.Fatal(rerr)

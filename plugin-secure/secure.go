@@ -17,6 +17,7 @@ package secure
 
 import (
 	"crypto/aes"
+	"fmt"
 
 	"github.com/henrylee2cn/goutil"
 	tp "github.com/henrylee2cn/teleport"
@@ -54,9 +55,9 @@ func NewSecurePlugin(rerrCode int32, cipherkey string) tp.Plugin {
 	}
 }
 
-// UseSecure enforces the body of the encrypted reply packet.
+// EnforceSecure enforces the body of the encrypted reply packet.
 // Note: requires that the secure plugin has been registered!
-func UseSecure(output *socket.Packet) {
+func EnforceSecure(output *socket.Packet) {
 	output.Meta().Set(SECURE_META_KEY, "true")
 }
 
@@ -70,9 +71,10 @@ func WithSecureMeta() socket.PacketSetting {
 
 // WithAcceptSecureMeta requires the peer to encrypt the replying body.
 // Note: requires that the secure plugin has been registered!
-func WithAcceptSecureMeta() socket.PacketSetting {
+func WithAcceptSecureMeta(accept bool) socket.PacketSetting {
+	s := fmt.Sprintf("%v", accept)
 	return func(packet *socket.Packet) {
-		packet.Meta().Set(ACCEPT_SECURE_META_KEY, "true")
+		packet.Meta().Set(ACCEPT_SECURE_META_KEY, s)
 	}
 }
 
@@ -139,7 +141,7 @@ func (e *encryptPlugin) PreWritePull(ctx tp.WriteCtx) *tp.Rerror {
 		if !acceptSecure {
 			return nil
 		}
-		UseSecure(ctx.Output())
+		EnforceSecure(ctx.Output())
 	}
 
 	// perform encryption operation to the body.
@@ -164,17 +166,20 @@ func (e *encryptPlugin) PreWriteReply(ctx tp.WriteCtx) *tp.Rerror {
 }
 
 func (e *decryptPlugin) PreReadPullBody(ctx tp.ReadCtx) *tp.Rerror {
+	b := ctx.PeekMeta(ACCEPT_SECURE_META_KEY)
+	accept := goutil.BytesToString(b)
 	useDecrypt := isSecure(ctx.Input().Meta())
 	if !useDecrypt {
 		// if the metadata ACCEPT_SECURE_META_KEY is true,
 		// perform encryption operation to the body.
-		b := ctx.PeekMeta(ACCEPT_SECURE_META_KEY)
-		if len(b) == 4 && goutil.BytesToString(b) == "true" {
+		if accept == "true" {
 			ctx.Swap().Store(accept_encrypt, nil)
 		}
 		return nil
 	}
-	ctx.Swap().Store(accept_encrypt, nil)
+	if accept != "false" {
+		ctx.Swap().Store(accept_encrypt, nil)
+	}
 
 	// to prepare for decryption.
 	ctx.Swap().Store(encrypt_rawbody, ctx.Input().Body())
