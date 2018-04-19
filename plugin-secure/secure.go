@@ -20,14 +20,16 @@ import (
 
 	"github.com/henrylee2cn/goutil"
 	tp "github.com/henrylee2cn/teleport"
+	"github.com/henrylee2cn/teleport/socket"
+	"github.com/henrylee2cn/teleport/utils"
 )
 
-// SECURE_QUERY_KEY if the query parameter is existed, perform encryption operation to the body.
-const SECURE_QUERY_KEY = "_secure"
-
-type swapKey string
-
-const encrypt_rawbody swapKey = ""
+const (
+	// SECURE_META_KEY if the metadata is true, perform encryption operation to the body.
+	SECURE_META_KEY = "X-Secure" // value: true/false
+	// ACCEPT_SECURE_META_KEY if the metadata is true, perform encryption operation to the body.
+	ACCEPT_SECURE_META_KEY = "X-Accept-Secure" // value: true/false
+)
 
 // NewSecurePlugin creates a AES encryption/decryption plugin.
 // The cipherkey argument should be the AES key,
@@ -52,48 +54,33 @@ func NewSecurePlugin(rerrCode int32, cipherkey string) tp.Plugin {
 	}
 }
 
-// NewEncryptPlugin creates a AES encryption plugin.
-// The cipherkey argument should be the AES key,
-// either 16, 24, or 32 bytes to select AES-128, AES-192, or AES-256.
-func NewEncryptPlugin(rerrCode int32, cipherkey string) tp.Plugin {
-	b := []byte(cipherkey)
-	if _, err := aes.NewCipher(b); err != nil {
-		tp.Fatalf("NewEncryptPlugin: %v", err)
-	}
-	version := goutil.Md5([]byte(cipherkey))
-	return &encryptPlugin{
-		version:   version,
-		cipherkey: b,
-		rerrCode:  rerrCode,
+// UseSecure enforces the body of the encrypted reply packet.
+// Note: requires that the secure plugin has been registered!
+func UseSecure(output *socket.Packet) {
+	output.Meta().Set(SECURE_META_KEY, "true")
+}
+
+// WithSecureMeta encrypts the body of the current packet.
+// Note: requires that the secure plugin has been registered!
+func WithSecureMeta() socket.PacketSetting {
+	return func(packet *socket.Packet) {
+		packet.Meta().Set(SECURE_META_KEY, "true")
 	}
 }
 
-// NewDecryptPlugin creates a AES decryption plugin.
-// The cipherkey argument should be the AES key,
-// either 16, 24, or 32 bytes to select AES-128, AES-192, or AES-256.
-func NewDecryptPlugin(rerrCode int32, cipherkey string) tp.Plugin {
-	b := []byte(cipherkey)
-	if _, err := aes.NewCipher(b); err != nil {
-		tp.Fatalf("NewDecryptPlugin: %v", err)
-	}
-	version := goutil.Md5([]byte(cipherkey))
-	return &decryptPlugin{
-		version:   version,
-		cipherkey: b,
-		rerrCode:  rerrCode,
+// WithAcceptSecureMeta requires the peer to encrypt the replying body.
+// Note: requires that the secure plugin has been registered!
+func WithAcceptSecureMeta() socket.PacketSetting {
+	return func(packet *socket.Packet) {
+		packet.Meta().Set(ACCEPT_SECURE_META_KEY, "true")
 	}
 }
 
-var (
-	_ tp.PreWritePullPlugin      = (*encryptPlugin)(nil)
-	_ tp.PreWritePushPlugin      = (*encryptPlugin)(nil)
-	_ tp.PreWriteReplyPlugin     = (*encryptPlugin)(nil)
-	_ tp.PreReadPullBodyPlugin   = (*decryptPlugin)(nil)
-	_ tp.PostReadPullBodyPlugin  = (*decryptPlugin)(nil)
-	_ tp.PreReadReplyBodyPlugin  = (*decryptPlugin)(nil)
-	_ tp.PostReadReplyBodyPlugin = (*decryptPlugin)(nil)
-	_ tp.PreReadPushBodyPlugin   = (*decryptPlugin)(nil)
-	_ tp.PostReadPushBodyPlugin  = (*decryptPlugin)(nil)
+type swapKey string
+
+const (
+	encrypt_rawbody swapKey = ""
+	accept_encrypt  swapKey = "0"
 )
 
 type (
@@ -109,25 +96,52 @@ type (
 	decryptPlugin encryptPlugin
 )
 
+var (
+	_ tp.PreWritePullPlugin      = (*encryptPlugin)(nil)
+	_ tp.PreWritePushPlugin      = (*encryptPlugin)(nil)
+	_ tp.PreWriteReplyPlugin     = (*encryptPlugin)(nil)
+	_ tp.PreReadPullBodyPlugin   = (*decryptPlugin)(nil)
+	_ tp.PostReadPullBodyPlugin  = (*decryptPlugin)(nil)
+	_ tp.PreReadReplyBodyPlugin  = (*decryptPlugin)(nil)
+	_ tp.PostReadReplyBodyPlugin = (*decryptPlugin)(nil)
+	_ tp.PreReadPushBodyPlugin   = (*decryptPlugin)(nil)
+	_ tp.PostReadPushBodyPlugin  = (*decryptPlugin)(nil)
+)
+
 func (e *securePlugin) Name() string {
-	return "secure(encrypt&decrypt)"
+	return "secure(encrypt/decrypt)"
 }
 
-func (e *decryptPlugin) Name() string {
-	return "decrypt"
-}
+// func (e *decryptPlugin) Name() string {
+// 	return "decrypt"
+// }
 
-func (e *encryptPlugin) Name() string {
-	return "encrypt"
+// func (e *encryptPlugin) Name() string {
+// 	return "encrypt"
+// }
+
+func isSecure(meta *utils.Args) bool {
+	b := meta.Peek(SECURE_META_KEY)
+	if len(b) == 4 && goutil.BytesToString(b) == "true" {
+		return true
+	}
+	// if the metadata SECURE_META_KEY is not true,
+	// do not perform decryption operation to the body!
+	if b != nil {
+		meta.Del(SECURE_META_KEY)
+	}
+	return false
 }
 
 func (e *encryptPlugin) PreWritePull(ctx tp.WriteCtx) *tp.Rerror {
-	uri := ctx.Output().UriObject()
-	if _, ok := uri.Query()[SECURE_QUERY_KEY]; !ok {
-		// if the query parameter SECURE_QUERY_KEY is not existed,
-		// do not perform encryption operation to the body!
-		return nil
+	if !isSecure(ctx.Output().Meta()) {
+		_, acceptSecure := ctx.Swap().Load(accept_encrypt)
+		if !acceptSecure {
+			return nil
+		}
+		UseSecure(ctx.Output())
 	}
+
 	// perform encryption operation to the body.
 	bodyBytes, err := ctx.Output().MarshalBody()
 	if err != nil {
@@ -150,12 +164,18 @@ func (e *encryptPlugin) PreWriteReply(ctx tp.WriteCtx) *tp.Rerror {
 }
 
 func (e *decryptPlugin) PreReadPullBody(ctx tp.ReadCtx) *tp.Rerror {
-	uri := ctx.Input().UriObject()
-	if _, ok := uri.Query()[SECURE_QUERY_KEY]; !ok {
-		// if the query parameter SECURE_QUERY_KEY is not existed,
-		// do not perform decryption operation to the body!
+	useDecrypt := isSecure(ctx.Input().Meta())
+	if !useDecrypt {
+		// if the metadata ACCEPT_SECURE_META_KEY is true,
+		// perform encryption operation to the body.
+		b := ctx.PeekMeta(ACCEPT_SECURE_META_KEY)
+		if len(b) == 4 && goutil.BytesToString(b) == "true" {
+			ctx.Swap().Store(accept_encrypt, nil)
+		}
 		return nil
 	}
+	ctx.Swap().Store(accept_encrypt, nil)
+
 	// to prepare for decryption.
 	ctx.Swap().Store(encrypt_rawbody, ctx.Input().Body())
 	ctx.Input().SetBody(new(Encrypt))
