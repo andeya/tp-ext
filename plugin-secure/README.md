@@ -60,18 +60,36 @@ func TestSecurePlugin1(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	var reply Result
-	rerr := sess.Pull("/math/add", &Args{
-		A: 10,
-		B: 2,
-	}, &reply).Rerror()
-	if rerr != nil {
-		t.Fatal(rerr)
+	// test secure
+	{
+		var reply Result
+		rerr := sess.Pull("/math/add?_secure", &Args{
+			A: 10,
+			B: 2,
+		}, &reply).Rerror()
+		if rerr != nil {
+			t.Fatal(rerr)
+		}
+		if reply.C != 12 {
+			t.Fatalf("expect 12, but get %d", reply.C)
+		}
+		t.Logf("test secure10+2=%d", reply.C)
 	}
-	if reply.C != 12 {
-		t.Fatalf("expect 12, but get %d", reply.C)
+	// test not secure
+	{
+		var reply Result
+		rerr := sess.Pull("/math/add", &Args{
+			A: 20,
+			B: 4,
+		}, &reply).Rerror()
+		if rerr != nil {
+			t.Fatal(rerr)
+		}
+		if reply.C != 24 {
+			t.Fatalf("expect 24, but get %d", reply.C)
+		}
+		t.Logf("test not secure: 20+4=%d", reply.C)
 	}
-	t.Logf("10+2=%d", reply.C)
 }
 
 func TestSecurePlugin2(t *testing.T) {
@@ -93,18 +111,36 @@ func TestSecurePlugin2(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	var reply Result
-	rerr := sess.Pull("/math/add", &Args{
-		A: 10,
-		B: 2,
-	}, &reply).Rerror()
-	if rerr != nil {
-		t.Fatal(rerr)
+	// test secure
+	{
+		var reply Result
+		rerr := sess.Pull("/math/add?_secure", &Args{
+			A: 10,
+			B: 2,
+		}, &reply).Rerror()
+		if rerr != nil {
+			t.Fatal(rerr)
+		}
+		if reply.C != 12 {
+			t.Fatalf("expect 12, but get %d", reply.C)
+		}
+		t.Logf("test secure: 10+2=%d", reply.C)
 	}
-	if reply.C != 12 {
-		t.Fatalf("expect 12, but get %d", reply.C)
+	// test not secure
+	{
+		var reply Result
+		rerr := sess.Pull("/math/add", &Args{
+			A: 20,
+			B: 4,
+		}, &reply).Rerror()
+		if rerr != nil {
+			t.Fatal(rerr)
+		}
+		if reply.C != 24 {
+			t.Fatalf("expect 24, but get %d", reply.C)
+		}
+		t.Logf("test not secure: 20+4=%d", reply.C)
 	}
-	t.Logf("10+2=%d", reply.C)
 }
 ```
 

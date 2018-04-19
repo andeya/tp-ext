@@ -22,6 +22,13 @@ import (
 	tp "github.com/henrylee2cn/teleport"
 )
 
+// SECURE_QUERY_KEY if the query parameter is existed, perform encryption operation to the body.
+const SECURE_QUERY_KEY = "_secure"
+
+type swapKey string
+
+const encrypt_rawbody swapKey = ""
+
 // NewSecurePlugin creates a AES encryption/decryption plugin.
 // The cipherkey argument should be the AES key,
 // either 16, 24, or 32 bytes to select AES-128, AES-192, or AES-256.
@@ -115,6 +122,13 @@ func (e *encryptPlugin) Name() string {
 }
 
 func (e *encryptPlugin) PreWritePull(ctx tp.WriteCtx) *tp.Rerror {
+	uri := ctx.Output().UriObject()
+	if _, ok := uri.Query()[SECURE_QUERY_KEY]; !ok {
+		// if the query parameter SECURE_QUERY_KEY is not existed,
+		// do not perform encryption operation to the body!
+		return nil
+	}
+	// perform encryption operation to the body.
 	bodyBytes, err := ctx.Output().MarshalBody()
 	if err != nil {
 		return tp.NewRerror(e.rerrCode, "marshal raw body error", err.Error())
@@ -136,22 +150,29 @@ func (e *encryptPlugin) PreWriteReply(ctx tp.WriteCtx) *tp.Rerror {
 }
 
 func (e *decryptPlugin) PreReadPullBody(ctx tp.ReadCtx) *tp.Rerror {
-	ctx.Swap().Store("encrypt_rawbody", ctx.Input().Body())
+	uri := ctx.Input().UriObject()
+	if _, ok := uri.Query()[SECURE_QUERY_KEY]; !ok {
+		// if the query parameter SECURE_QUERY_KEY is not existed,
+		// do not perform decryption operation to the body!
+		return nil
+	}
+	// to prepare for decryption.
+	ctx.Swap().Store(encrypt_rawbody, ctx.Input().Body())
 	ctx.Input().SetBody(new(Encrypt))
 	return nil
 }
 
 func (e *decryptPlugin) PostReadPullBody(ctx tp.ReadCtx) *tp.Rerror {
+	rawbody, ok := ctx.Swap().Load(encrypt_rawbody)
+	if !ok {
+		return nil
+	}
 	ciphertext := ctx.Input().Body().(*Encrypt).GetCiphertext()
 	bodyBytes, err := goutil.AESDecrypt(e.cipherkey, goutil.StringToBytes(ciphertext))
 	if err != nil {
 		return tp.NewRerror(e.rerrCode, "decrypt ciphertext error", err.Error())
 	}
-	rawbody, ok := ctx.Swap().Load("encrypt_rawbody")
-	if !ok {
-		return tp.NewRerror(e.rerrCode, "encrypt_rawbody is not exist!", "")
-	}
-	ctx.Swap().Delete("encrypt_rawbody")
+	ctx.Swap().Delete(encrypt_rawbody)
 	ctx.Input().SetBody(rawbody)
 	err = ctx.Input().UnmarshalBody(bodyBytes)
 	if err != nil {
