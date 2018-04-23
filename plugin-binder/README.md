@@ -69,14 +69,14 @@ type (
 		SwapValue float32 `param:"<swap><nonzero>"`
 	}
 	Query struct {
-		X string `param:"<query>"`
+		X string `param:"<query:_x>"`
 	}
 )
 
 type P struct{ tp.PullCtx }
 
 func (p *P) Divide(args *Args) (int, *tp.Rerror) {
-	tp.Infof("query args x: %s, xy_z: %s, swap_value: %v", args.Query.X, args.XyZ, args.SwapValue)
+	tp.Infof("query args _x: %s, xy_z: %s, swap_value: %v", args.Query.X, args.XyZ, args.SwapValue)
 	return args.A / args.B, nil
 }
 
@@ -106,7 +106,7 @@ func TestBinder(t *testing.T) {
 		t.Fatal(err)
 	}
 	var reply int
-	rerr := sess.Pull("/p/divide?x=testquery_x&xy_z=testquery_xy_z", &Args{
+	rerr := sess.Pull("/p/divide?_x=testquery_x&xy_z=testquery_xy_z", &Args{
 		A: 10,
 		B: 2,
 	}, &reply).Rerror()
