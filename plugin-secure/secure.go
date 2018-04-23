@@ -136,6 +136,9 @@ func isSecure(meta *utils.Args) bool {
 }
 
 func (e *encryptPlugin) PreWritePull(ctx tp.WriteCtx) *tp.Rerror {
+	if ctx.Rerror() != nil {
+		return nil
+	}
 	if !isSecure(ctx.Output().Meta()) {
 		_, acceptSecure := ctx.Swap().Load(accept_encrypt)
 		if !acceptSecure {
