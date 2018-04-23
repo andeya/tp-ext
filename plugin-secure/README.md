@@ -31,8 +31,8 @@ type Result struct {
 type math struct{ tp.PullCtx }
 
 func (m *math) Add(args *Args) (*Result, *tp.Rerror) {
-	// all encrypted
-	// secure.UseSecure(m.Output())
+	// enforces the body of the encrypted reply packet.
+	// secure.EnforceSecure(m.Output())
 
 	return &Result{C: args.A + args.B}, nil
 }
@@ -41,14 +41,14 @@ func newSession(t *testing.T) tp.Session {
 	p := secure.NewSecurePlugin(100001, "cipherkey1234567")
 	srv := tp.NewPeer(tp.PeerConfig{
 		ListenAddress: ":9090",
-		PrintBody:     true,
+		PrintDetail:   true,
 	})
 	srv.RoutePull(new(math), p)
 	go srv.ListenAndServe()
 	time.Sleep(time.Second)
 
 	cli := tp.NewPeer(tp.PeerConfig{
-		PrintBody: true,
+		PrintDetail: true,
 	}, p)
 	sess, err := cli.Dial(":9090")
 	if err != nil {
@@ -66,6 +66,7 @@ func TestSecurePlugin(t *testing.T) {
 		&Args{A: 10, B: 2},
 		&reply,
 		secure.WithSecureMeta(),
+		// secure.WithAcceptSecureMeta(false),
 	).Rerror()
 	if rerr != nil {
 		t.Fatal(rerr)
@@ -84,7 +85,7 @@ func TestAcceptSecurePlugin(t *testing.T) {
 		"/math/add",
 		&Args{A: 20, B: 4},
 		&reply,
-		secure.WithAcceptSecureMeta(),
+		secure.WithAcceptSecureMeta(true),
 	).Rerror()
 	if rerr != nil {
 		t.Fatal(rerr)

@@ -30,14 +30,14 @@ func newSession(t *testing.T) tp.Session {
 	p := secure.NewSecurePlugin(100001, "cipherkey1234567")
 	srv := tp.NewPeer(tp.PeerConfig{
 		ListenAddress: ":9090",
-		PrintBody:     true,
+		PrintDetail:   true,
 	})
 	srv.RoutePull(new(math), p)
 	go srv.ListenAndServe()
 	time.Sleep(time.Second)
 
 	cli := tp.NewPeer(tp.PeerConfig{
-		PrintBody: true,
+		PrintDetail: true,
 	}, p)
 	sess, err := cli.Dial(":9090")
 	if err != nil {
@@ -74,7 +74,7 @@ func TestAcceptSecurePlugin(t *testing.T) {
 		"/math/add",
 		&Args{A: 20, B: 4},
 		&reply,
-		secure.WithAcceptSecureMeta(false),
+		secure.WithAcceptSecureMeta(true),
 	).Rerror()
 	if rerr != nil {
 		t.Fatal(rerr)
