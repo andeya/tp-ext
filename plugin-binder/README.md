@@ -10,8 +10,8 @@ Parameter Binding Verification Plugin for Struct Handler.
 
 tag   |   key    | required |     value     |   desc
 ------|----------|----------|---------------|----------------------------------
-param |   query    | no |     -      | It indicates that the parameter is from the URI query part. e.g. `/a/b?x={query}`
-param |   swap    | no |     -      | It indicates that the parameter is from the context swap.
+param |   query    | no |  (name e.g.`id`)   | It indicates that the parameter is from the URI query part. e.g. `/a/b?x={query}`
+param |   swap    | no |   (name e.g.`id`)  | It indicates that the parameter is from the context swap.
 param |   desc   |      no      |     (e.g.`id`)   | Parameter Description
 param |   len    |      no      |   (e.g.`3:6`)  | Length range [a,b] of parameter's value
 param |   range  |      no      |   (e.g.`0:10`)   | Numerical range [a,b] of parameter's value
