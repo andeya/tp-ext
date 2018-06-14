@@ -1,5 +1,5 @@
 // Package jsonproto is implemented JSON socket communication protocol.
-//  Packet data demo: `83{"seq":%d,"ptype":%d,"uri":%q,"meta":%q,"body_codec":%d,"body":"%s","xfer_pipe":%s}`
+//  Packet data format: {length bytes}{xfer_pipe length byte}{xfer_pipe bytes}{JSON bytes}
 //
 // Copyright 2018 HenryLee. All Rights Reserved.
 //
@@ -32,7 +32,8 @@ import (
 )
 
 // NewJsonProtoFunc is creation function of JSON socket protocol.
-//  Packet data demo: `83{"seq":%d,"ptype":%d,"uri":%q,"meta":%q,"body_codec":%d,"body":"%s","xfer_pipe":%s}`
+//  Packet data format: {length bytes}{xfer_pipe length byte}{xfer_pipe bytes}{JSON bytes}
+//  Packet data demo: `830{"seq":%q,"ptype":%d,"uri":%q,"meta":%q,"body_codec":%d,"body":"%s"}`
 var NewJsonProtoFunc = func(rw io.ReadWriter) socket.Proto {
 	var (
 		readBufioSize             int

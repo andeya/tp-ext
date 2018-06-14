@@ -5,16 +5,12 @@ jsonproto is implemented JSON socket communication protocol.
 
 ### Data Packet
 
-`Length``JSON`
+`{length bytes}` `{xfer_pipe length byte}` `{xfer_pipe bytes}` `{JSON bytes}`
 
-- `Length`: uint32, 4 bytes, big endian
-- `JSON`: {"seq":%d,"ptype":%d,"uri":%q,"meta":%q,"body_codec":%d,"body":"%s","xfer_pipe":%s}
-
-Demo:
-
-```
-83{"seq":%d,"ptype":%d,"uri":%q,"meta":%q,"body_codec":%d,"body":"%s","xfer_pipe":%s}
-```
+- `{length bytes}`: uint32, 4 bytes, big endian
+- `{xfer_pipe length byte}`: 1 byte
+- `{xfer_pipe bytes}`: one byte one xfer
+- `{JSON bytes}`: {"seq":%d,"ptype":%d,"uri":%q,"meta":%q,"body_codec":%d,"body":"%s"}
 
 ### Usage
 

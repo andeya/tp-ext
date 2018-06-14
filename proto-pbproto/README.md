@@ -1,7 +1,15 @@
 ## pbproto
 
-jsonproto is implemented PTOTOBUF socket communication protocol.
+pbproto is implemented PTOTOBUF socket communication protocol.
 
+### Data Packet
+
+`{length bytes}` `{xfer_pipe length byte}` `{xfer_pipe bytes}` `{protobuf bytes}`
+
+- `{length bytes}`: uint32, 4 bytes, big endian
+- `{xfer_pipe length byte}`: 1 byte
+- `{xfer_pipe bytes}`: one byte one xfer
+- `{protobuf bytes}`: {"seq":%d,"ptype":%d,"uri":%q,"meta":%q,"body_codec":%d,"body":"%s"}
 
 ### Usage
 
