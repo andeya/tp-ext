@@ -22,15 +22,15 @@ import (
 	pbSubProto "github.com/henrylee2cn/tp-ext/mod-websocket/pbSubProto"
 )
 
-type Args struct {
+type Arg struct {
 	A int
 	B int `param:"<range:1:>"`
 }
 
 type P struct{ tp.PullCtx }
 
-func (p *P) Divide(args *Args) (int, *tp.Rerror) {
-	return args.A / args.B, nil
+func (p *P) Divide(arg *Arg) (int, *tp.Rerror) {
+	return arg.A / arg.B, nil
 }
 
 func TestJsonSubWebsocket(t *testing.T) {
@@ -45,15 +45,15 @@ func TestJsonSubWebsocket(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	var reply int
-	rerr := sess.Pull("/p/divide", &Args{
+	var result int
+	rerr := sess.Pull("/p/divide", &Arg{
 		A: 10,
 		B: 2,
-	}, &reply).Rerror()
+	}, &result).Rerror()
 	if rerr != nil {
 		t.Fatal(rerr)
 	}
-	t.Logf("10/2=%d", reply)
+	t.Logf("10/2=%d", result)
 	time.Sleep(time.Second)
 }
 
@@ -69,15 +69,15 @@ func TestPbSubWebsocket(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	var reply int
-	rerr := sess.Pull("/p/divide", &Args{
+	var result int
+	rerr := sess.Pull("/p/divide", &Arg{
 		A: 10,
 		B: 2,
-	}, &reply).Rerror()
+	}, &result).Rerror()
 	if rerr != nil {
 		t.Fatal(rerr)
 	}
-	t.Logf("10/2=%d", reply)
+	t.Logf("10/2=%d", result)
 	time.Sleep(time.Second)
 }
 ```

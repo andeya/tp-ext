@@ -9,7 +9,7 @@ import (
 )
 
 type (
-	Args struct {
+	Arg struct {
 		A int
 		B int `param:"<range:1:100>"`
 		Query
@@ -23,9 +23,9 @@ type (
 
 type P struct{ tp.PullCtx }
 
-func (p *P) Divide(args *Args) (int, *tp.Rerror) {
-	tp.Infof("query args _x: %s, xy_z: %s, swap_value: %v", args.Query.X, args.XyZ, args.SwapValue)
-	return args.A / args.B, nil
+func (p *P) Divide(arg *Arg) (int, *tp.Rerror) {
+	tp.Infof("query arg _x: %s, xy_z: %s, swap_value: %v", arg.Query.X, arg.XyZ, arg.SwapValue)
+	return arg.A / arg.B, nil
 }
 
 type SwapPlugin struct{}
@@ -53,27 +53,27 @@ func TestBinder(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	var reply int
-	rerr := sess.Pull("/p/divide?_x=testquery_x&xy_z=testquery_xy_z", &Args{
+	var result int
+	rerr := sess.Pull("/p/divide?_x=testquery_x&xy_z=testquery_xy_z", &Arg{
 		A: 10,
 		B: 2,
-	}, &reply).Rerror()
+	}, &result).Rerror()
 	if rerr != nil {
 		t.Fatal(rerr)
 	}
-	t.Logf("10/2=%d", reply)
-	rerr = sess.Pull("/p/divide", &Args{
+	t.Logf("10/2=%d", result)
+	rerr = sess.Pull("/p/divide", &Arg{
 		A: 10,
 		B: 5,
-	}, &reply).Rerror()
+	}, &result).Rerror()
 	if rerr == nil {
 		t.Fatal(rerr)
 	}
 	t.Logf("10/5 error:%v", rerr)
-	rerr = sess.Pull("/p/divide", &Args{
+	rerr = sess.Pull("/p/divide", &Arg{
 		A: 10,
 		B: 0,
-	}, &reply).Rerror()
+	}, &result).Rerror()
 	if rerr == nil {
 		t.Fatal(rerr)
 	}

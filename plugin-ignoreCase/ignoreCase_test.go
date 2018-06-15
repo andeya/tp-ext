@@ -12,7 +12,7 @@ type Home struct {
 	tp.PullCtx
 }
 
-func (h *Home) Test(args *map[string]interface{}) (map[string]interface{}, *tp.Rerror) {
+func (h *Home) Test(arg *map[string]interface{}) (map[string]interface{}, *tp.Rerror) {
 	h.Session().Push("/push/tesT", map[string]interface{}{
 		"your_id": h.Query().Get("peer_id"),
 	})
@@ -20,7 +20,7 @@ func (h *Home) Test(args *map[string]interface{}) (map[string]interface{}, *tp.R
 	time.Sleep(5e9)
 
 	return map[string]interface{}{
-		"args": *args,
+		"arg":  *arg,
 		"meta": meta.String(),
 	}, nil
 }
@@ -41,25 +41,25 @@ func TestIngoreCase(t *testing.T) {
 			t.Error(err)
 		}
 	}
-	var reply interface{}
+	var result interface{}
 	rerr := sess.Pull("/home/tesT?peer_id=110",
 		map[string]interface{}{
 			"bytes": []byte("test bytes"),
 		},
-		&reply,
+		&result,
 		tp.WithAddMeta("add", "1"),
 	).Rerror()
 	if rerr != nil {
 		t.Error(rerr)
 	}
-	t.Logf("reply:%v", reply)
+	t.Logf("result:%v", result)
 }
 
 type Push struct {
 	tp.PushCtx
 }
 
-func (p *Push) Test(args *map[string]interface{}) *tp.Rerror {
-	tp.Infof("receive push(%s):\nargs: %#v\n", p.Ip(), args)
+func (p *Push) Test(arg *map[string]interface{}) *tp.Rerror {
+	tp.Infof("receive push(%s):\narg: %#v\n", p.Ip(), arg)
 	return nil
 }

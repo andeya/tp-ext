@@ -49,26 +49,26 @@ func TestCombined(t *testing.T) {
 			t.Error(err)
 		}
 	}
-	var reply interface{}
+	var result interface{}
 	rerr := sess.Pull("/home/test?peer_id=110",
 		map[string]interface{}{
 			"bytes": []byte("test bytes"),
 		},
-		&reply,
+		&result,
 		// Use custom filter
 		tp.WithXferPipe('m'),
 	).Rerror()
 	if rerr != nil {
 		t.Error(rerr)
 	}
-	t.Logf("=========reply:%v", reply)
+	t.Logf("=========result:%v", result)
 }
 
 type Home struct {
 	tp.PullCtx
 }
 
-func (h *Home) Test(args *map[string]interface{}) (map[string]interface{}, *tp.Rerror) {
+func (h *Home) Test(arg *map[string]interface{}) (map[string]interface{}, *tp.Rerror) {
 	return map[string]interface{}{
 		"your_id": h.Query().Get("peer_id"),
 	}, nil

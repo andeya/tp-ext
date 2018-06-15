@@ -64,17 +64,17 @@ func (c *CliSession) Stats() pool.WorkshopStats {
 }
 
 // AsyncPull sends a packet and receives reply asynchronously.
-// If the args is []byte or *[]byte type, it can automatically fill in the body codec name.
+// If the arg is []byte or *[]byte type, it can automatically fill in the body codec name.
 func (c *CliSession) AsyncPull(
 	uri string,
-	args interface{},
-	reply interface{},
+	arg interface{},
+	result interface{},
 	pullCmdChan chan<- tp.PullCmd,
 	setting ...socket.PacketSetting,
 ) tp.PullCmd {
 	_sess, err := c.pool.Hire()
 	if err != nil {
-		pullCmd := tp.NewFakePullCmd(uri, args, reply, tp.ToRerror(err))
+		pullCmd := tp.NewFakePullCmd(uri, arg, result, tp.ToRerror(err))
 		if pullCmdChan != nil && cap(pullCmdChan) == 0 {
 			tp.Panicf("*CliSession.AsyncPull(): pullCmdChan channel is unbuffered")
 		}
@@ -83,29 +83,29 @@ func (c *CliSession) AsyncPull(
 	}
 	sess := _sess.(tp.Session)
 	defer c.pool.Fire(sess)
-	return sess.AsyncPull(uri, args, reply, pullCmdChan, setting...)
+	return sess.AsyncPull(uri, arg, result, pullCmdChan, setting...)
 }
 
 // Pull sends a packet and receives reply.
 // Note:
-// If the args is []byte or *[]byte type, it can automatically fill in the body codec name;
+// If the arg is []byte or *[]byte type, it can automatically fill in the body codec name;
 // If the session is a client role and PeerConfig.RedialTimes>0, it is automatically re-called once after a failure.
-func (c *CliSession) Pull(uri string, args interface{}, reply interface{}, setting ...socket.PacketSetting) tp.PullCmd {
-	pullCmd := c.AsyncPull(uri, args, reply, make(chan tp.PullCmd, 1), setting...)
+func (c *CliSession) Pull(uri string, arg interface{}, result interface{}, setting ...socket.PacketSetting) tp.PullCmd {
+	pullCmd := c.AsyncPull(uri, arg, result, make(chan tp.PullCmd, 1), setting...)
 	<-pullCmd.Done()
 	return pullCmd
 }
 
 // Push sends a packet, but do not receives reply.
 // Note:
-// If the args is []byte or *[]byte type, it can automatically fill in the body codec name;
+// If the arg is []byte or *[]byte type, it can automatically fill in the body codec name;
 // If the session is a client role and PeerConfig.RedialTimes>0, it is automatically re-called once after a failure.
-func (c *CliSession) Push(uri string, args interface{}, setting ...socket.PacketSetting) *tp.Rerror {
+func (c *CliSession) Push(uri string, arg interface{}, setting ...socket.PacketSetting) *tp.Rerror {
 	_sess, err := c.pool.Hire()
 	if err != nil {
 		return tp.ToRerror(err)
 	}
 	sess := _sess.(tp.Session)
 	defer c.pool.Fire(sess)
-	return sess.Push(uri, args, setting...)
+	return sess.Push(uri, arg, setting...)
 }

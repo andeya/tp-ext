@@ -19,7 +19,7 @@ import (
 	secure "github.com/henrylee2cn/tp-ext/plugin-secure"
 )
 
-type Args struct {
+type Arg struct {
 	A int
 	B int
 }
@@ -30,11 +30,11 @@ type Result struct {
 
 type math struct{ tp.PullCtx }
 
-func (m *math) Add(args *Args) (*Result, *tp.Rerror) {
+func (m *math) Add(arg *Arg) (*Result, *tp.Rerror) {
 	// enforces the body of the encrypted reply packet.
 	// secure.EnforceSecure(m.Output())
 
-	return &Result{C: args.A + args.B}, nil
+	return &Result{C: arg.A + arg.B}, nil
 }
 
 func newSession(t *testing.T) tp.Session {
@@ -60,40 +60,40 @@ func newSession(t *testing.T) tp.Session {
 func TestSecurePlugin(t *testing.T) {
 	sess := newSession(t)
 	// test secure
-	var reply Result
+	var result Result
 	rerr := sess.Pull(
 		"/math/add",
-		&Args{A: 10, B: 2},
-		&reply,
+		&Arg{A: 10, B: 2},
+		&result,
 		secure.WithSecureMeta(),
 		// secure.WithAcceptSecureMeta(false),
 	).Rerror()
 	if rerr != nil {
 		t.Fatal(rerr)
 	}
-	if reply.C != 12 {
-		t.Fatalf("expect 12, but get %d", reply.C)
+	if result.C != 12 {
+		t.Fatalf("expect 12, but get %d", result.C)
 	}
-	t.Logf("test secure10+2=%d", reply.C)
+	t.Logf("test secure10+2=%d", result.C)
 }
 
 func TestAcceptSecurePlugin(t *testing.T) {
 	sess := newSession(t)
 	// test accept secure
-	var reply Result
+	var result Result
 	rerr := sess.Pull(
 		"/math/add",
-		&Args{A: 20, B: 4},
-		&reply,
+		&Arg{A: 20, B: 4},
+		&result,
 		secure.WithAcceptSecureMeta(true),
 	).Rerror()
 	if rerr != nil {
 		t.Fatal(rerr)
 	}
-	if reply.C != 24 {
-		t.Fatalf("expect 24, but get %d", reply.C)
+	if result.C != 24 {
+		t.Fatalf("expect 24, but get %d", result.C)
 	}
-	t.Logf("test accept secure: 20+4=%d", reply.C)
+	t.Logf("test accept secure: 20+4=%d", result.C)
 }
 ```
 

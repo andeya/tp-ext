@@ -26,15 +26,15 @@ import (
 	cliSession "github.com/henrylee2cn/tp-ext/mod-cliSession"
 )
 
-type Args struct {
+type Arg struct {
 	A int
 	B int `param:"<range:1:>"`
 }
 
 type P struct{ tp.PullCtx }
 
-func (p *P) Divide(args *Args) (int, *tp.Rerror) {
-	return args.A / args.B, nil
+func (p *P) Divide(arg *Arg) (int, *tp.Rerror) {
+	return arg.A / arg.B, nil
 }
 
 func TestCliSession(t *testing.T) {
@@ -58,16 +58,16 @@ func TestCliSession(t *testing.T) {
 		}
 	}()
 	go func() {
-		var reply int
+		var result int
 		for i := 0; ; i++ {
-			rerr := cli.Pull("/p/divide", &Args{
+			rerr := cli.Pull("/p/divide", &Arg{
 				A: i,
 				B: 2,
-			}, &reply).Rerror()
+			}, &result).Rerror()
 			if rerr != nil {
 				t.Log(rerr)
 			} else {
-				t.Logf("%d/2=%v", i, reply)
+				t.Logf("%d/2=%v", i, result)
 			}
 			time.Sleep(time.Millisecond * 500)
 		}

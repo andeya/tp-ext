@@ -12,7 +12,7 @@ type Home struct {
 	tp.PullCtx
 }
 
-func (h *Home) Test(args *map[string]interface{}) (map[string]interface{}, *tp.Rerror) {
+func (h *Home) Test(arg *map[string]interface{}) (map[string]interface{}, *tp.Rerror) {
 	return map[string]interface{}{
 		"your_id": h.Query().Get("peer_id"),
 	}, nil
@@ -33,18 +33,18 @@ func TestTpV2Proto(t *testing.T) {
 			t.Error(err)
 		}
 	}
-	var reply interface{}
+	var result interface{}
 	rerr := sess.Pull("/home/test?peer_id=110",
 		// map[string]interface{}{
 		// 	"bytes": []byte("test bytes"),
 		// },
 		nil,
-		&reply,
+		&result,
 		tp.WithAddMeta("add", "1"),
 		tp.WithSetMeta("set", "2"),
 	).Rerror()
 	if rerr != nil {
 		t.Error(rerr)
 	}
-	t.Logf("=========reply:%v", reply)
+	t.Logf("=========result:%v", result)
 }
