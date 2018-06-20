@@ -24,7 +24,7 @@ import (
 
 func TestHeartbeatPull1(t *testing.T) {
 	srv := tp.NewPeer(
-		tp.PeerConfig{ListenAddress: ":9090"},
+		tp.PeerConfig{ListenPort: 9090},
 		heartbeat.NewPong(),
 	)
 	go srv.ListenAndServe()
@@ -40,7 +40,7 @@ func TestHeartbeatPull1(t *testing.T) {
 
 func TestHeartbeatPull2(t *testing.T) {
 	srv := tp.NewPeer(
-		tp.PeerConfig{ListenAddress: ":9090"},
+		tp.PeerConfig{ListenPort: 9090},
 		heartbeat.NewPong(),
 	)
 	go srv.ListenAndServe()
@@ -60,7 +60,7 @@ func TestHeartbeatPull2(t *testing.T) {
 
 func TestHeartbeatPush1(t *testing.T) {
 	srv := tp.NewPeer(
-		tp.PeerConfig{ListenAddress: ":9090"},
+		tp.PeerConfig{ListenPort: 9090},
 		heartbeat.NewPing(3, false),
 	)
 	go srv.ListenAndServe()
@@ -76,7 +76,7 @@ func TestHeartbeatPush1(t *testing.T) {
 
 func TestHeartbeatPush2(t *testing.T) {
 	srv := tp.NewPeer(
-		tp.PeerConfig{ListenAddress: ":9090"},
+		tp.PeerConfig{ListenPort: 9090},
 		heartbeat.NewPing(3, false),
 	)
 	go srv.ListenAndServe()

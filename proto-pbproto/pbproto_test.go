@@ -25,7 +25,7 @@ func (h *Home) Test(arg *map[string]interface{}) (map[string]interface{}, *tp.Re
 
 func TestPbProto(t *testing.T) {
 	// server
-	srv := tp.NewPeer(tp.PeerConfig{ListenAddress: ":9090"})
+	srv := tp.NewPeer(tp.PeerConfig{ListenPort: 9090})
 	srv.RoutePull(new(Home))
 	go srv.ListenAndServe(pbproto.NewPbProtoFunc)
 	time.Sleep(1e9)

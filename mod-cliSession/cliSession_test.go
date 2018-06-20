@@ -21,7 +21,7 @@ func (p *P) Divide(arg *Arg) (int, *tp.Rerror) {
 
 func TestCliSession(t *testing.T) {
 	srv := tp.NewPeer(tp.PeerConfig{
-		ListenAddress: ":9090",
+		ListenPort: 9090,
 	})
 	srv.RoutePull(new(P))
 	go srv.ListenAndServe()

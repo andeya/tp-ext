@@ -41,7 +41,7 @@ func (s *SwapPlugin) PostReadPullBody(ctx tp.ReadCtx) *tp.Rerror {
 func TestBinder(t *testing.T) {
 	bplugin := binder.NewStructArgsBinder(nil)
 	srv := tp.NewPeer(
-		tp.PeerConfig{ListenAddress: ":9090"},
+		tp.PeerConfig{ListenPort: 9090},
 	)
 	srv.PluginContainer().AppendRight(bplugin)
 	srv.RoutePull(new(P), new(SwapPlugin))

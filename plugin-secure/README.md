@@ -40,7 +40,7 @@ func (m *math) Add(arg *Arg) (*Result, *tp.Rerror) {
 func newSession(t *testing.T) tp.Session {
 	p := secure.NewSecurePlugin(100001, "cipherkey1234567")
 	srv := tp.NewPeer(tp.PeerConfig{
-		ListenAddress: ":9090",
+		ListenPort: 9090,
 		PrintDetail:   true,
 	})
 	srv.RoutePull(new(math), p)

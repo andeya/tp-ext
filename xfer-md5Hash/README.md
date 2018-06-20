@@ -47,7 +47,7 @@ func TestCombined(t *testing.T) {
 	// Register filter(custom)
 	md5Hash.Reg('m', "md5")
 	// Server
-	srv := tp.NewPeer(tp.PeerConfig{ListenAddress: ":9090"})
+	srv := tp.NewPeer(tp.PeerConfig{ListenPort: 9090})
 	srv.RoutePull(new(Home))
 	go srv.ListenAndServe()
 	time.Sleep(1e9)
