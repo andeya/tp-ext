@@ -78,9 +78,10 @@ func getHeartbeatInfo(m goutil.Map) (*heartbeatInfo, bool) {
 }
 
 // updateHeartbeatInfo updates heartbeat info of session.
-func updateHeartbeatInfo(m goutil.Map, rate time.Duration) {
+func updateHeartbeatInfo(m goutil.Map, rate time.Duration) (isFirst bool) {
 	info, ok := getHeartbeatInfo(m)
 	if !ok {
+		isFirst = true
 		if rate > 0 {
 			initHeartbeatInfo(m, rate)
 		}
@@ -92,4 +93,5 @@ func updateHeartbeatInfo(m goutil.Map, rate time.Duration) {
 	}
 	info.last = coarsetime.CeilingTimeNow()
 	info.mu.Unlock()
+	return
 }

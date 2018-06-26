@@ -105,7 +105,7 @@ func (h *heartPong) PostWritePush(ctx tp.WriteCtx) *tp.Rerror {
 	if !sess.Health() {
 		return nil
 	}
-	updateHeartbeatInfo(sess.Swap(), -1)
+	updateHeartbeatInfo(sess.Swap(), 0)
 	return nil
 }
 
@@ -117,7 +117,7 @@ func (h *heartPong) update(ctx tp.ReadCtx) {
 	if !sess.Health() {
 		return
 	}
-	updateHeartbeatInfo(sess.Swap(), -1)
+	updateHeartbeatInfo(sess.Swap(), 0)
 }
 
 type pongPull struct {
@@ -128,7 +128,8 @@ func (ctx *pongPull) heartbeat(_ *struct{}) (*struct{}, *tp.Rerror) {
 	sess := ctx.Session()
 	rateStr := ctx.Query().Get(heartbeatQueryKey)
 	rateSecond := parseHeartbeatRateSecond(rateStr)
-	if rateSecond == -1 {
+	isFirst := updateHeartbeatInfo(sess.Swap(), time.Second*time.Duration(rateSecond))
+	if isFirst && rateSecond == -1 {
 		return nil, tp.NewRerror(tp.CodeBadPacket, "Invalid Heartbeat Rate", rateStr)
 	}
 	if rateSecond == 0 {
@@ -136,7 +137,6 @@ func (ctx *pongPull) heartbeat(_ *struct{}) (*struct{}, *tp.Rerror) {
 	} else {
 		tp.Tracef("heart-pong: %s, set rate: %ds", sess.Id(), rateSecond)
 	}
-	updateHeartbeatInfo(sess.Swap(), time.Second*time.Duration(rateSecond))
 	return nil, nil
 }
 
@@ -163,11 +163,11 @@ func (ctx *pongPush) heartbeat(_ *struct{}) *tp.Rerror {
 
 func parseHeartbeatRateSecond(s string) int {
 	if len(s) == 0 {
-		return -1
+		return 0
 	}
 	r, err := strconv.Atoi(s)
-	if err != nil || r <= 0 {
-		return 0
+	if err != nil || r < 0 {
+		return -1
 	}
 	return r
 }
