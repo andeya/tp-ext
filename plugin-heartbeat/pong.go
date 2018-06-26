@@ -15,6 +15,7 @@
 package heartbeat
 
 import (
+	"net/url"
 	"strconv"
 	"time"
 
@@ -125,19 +126,7 @@ type pongPull struct {
 }
 
 func (ctx *pongPull) heartbeat(_ *struct{}) (*struct{}, *tp.Rerror) {
-	sess := ctx.Session()
-	rateStr := ctx.Query().Get(heartbeatQueryKey)
-	rateSecond := parseHeartbeatRateSecond(rateStr)
-	isFirst := updateHeartbeatInfo(sess.Swap(), time.Second*time.Duration(rateSecond))
-	if isFirst && rateSecond == -1 {
-		return nil, tp.NewRerror(tp.CodeBadPacket, "Invalid Heartbeat Rate", rateStr)
-	}
-	if rateSecond == 0 {
-		tp.Tracef("heart-pong: %s", sess.Id())
-	} else {
-		tp.Tracef("heart-pong: %s, set rate: %ds", sess.Id(), rateSecond)
-	}
-	return nil, nil
+	return nil, handelHeartbeat(ctx.Session(), ctx.Query())
 }
 
 type pongPush struct {
@@ -145,19 +134,21 @@ type pongPush struct {
 }
 
 func (ctx *pongPush) heartbeat(_ *struct{}) *tp.Rerror {
-	sess := ctx.Session()
-	rateStr := ctx.Query().Get(heartbeatQueryKey)
+	return handelHeartbeat(ctx.Session(), ctx.Query())
+}
+
+func handelHeartbeat(sess tp.Session, query url.Values) *tp.Rerror {
+	rateStr := query.Get(heartbeatQueryKey)
 	rateSecond := parseHeartbeatRateSecond(rateStr)
-	if rateSecond == -1 {
-		tp.Debugf("invalid heart rate: %s, %s(/s)", sess.Id(), rateStr)
-		return nil
+	isFirst := updateHeartbeatInfo(sess.Swap(), time.Second*time.Duration(rateSecond))
+	if isFirst && rateSecond == -1 {
+		return tp.NewRerror(tp.CodeBadPacket, "Invalid Heartbeat Rate", rateStr)
 	}
 	if rateSecond == 0 {
 		tp.Tracef("heart-pong: %s", sess.Id())
 	} else {
 		tp.Tracef("heart-pong: %s, set rate: %ds", sess.Id(), rateSecond)
 	}
-	updateHeartbeatInfo(sess.Swap(), time.Second*time.Duration(rateSecond))
 	return nil
 }
 
