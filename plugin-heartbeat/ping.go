@@ -144,7 +144,6 @@ func (h *heartPing) PostNewPeer(peer tp.EarlyPeer) error {
 			isPull = h.isPull()
 			rangeSession(func(sess tp.Session) bool {
 				if !sess.Health() {
-					sess.Close()
 					return true
 				}
 				info, ok := getHeartbeatInfo(sess.Swap())

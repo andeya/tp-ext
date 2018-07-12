@@ -74,7 +74,7 @@ func (h *heartPong) PostNewPeer(peer tp.EarlyPeer) error {
 					return true
 				}
 				cp := info.elemCopy()
-				if !sess.Health() || cp.last.Add(cp.rate*2).Before(coarsetime.CeilingTimeNow()) {
+				if sess.Health() && cp.last.Add(cp.rate*2).Before(coarsetime.CeilingTimeNow()) {
 					sess.Close()
 				}
 				if cp.rate < interval || interval == initial {
